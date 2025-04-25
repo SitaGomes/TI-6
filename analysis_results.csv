@@ -1,0 +1,5 @@
+Metric,Original,Refactored,Change
+avg_complexity,0.00,0.00,0.00
+avg_mi,73.85,60.50,-13.35
+vulnerabilities,0,0,0
+pylint_issues,17,25,8
