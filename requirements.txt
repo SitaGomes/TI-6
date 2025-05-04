@@ -1,0 +1,8 @@
+requests
+PyGithub
+radon
+pylint
+pyright
+bandit
+pandas
+openai

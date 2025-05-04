@@ -1,0 +1,24 @@
+{
+    "repository": "public-apis",
+    "counts": {
+        "pylint_detected": 74,
+        "radon_detected": 1,
+        "ai_detected_reported": 42,
+        "ai_detected_parsed_location": 10
+    },
+    "comparison_vs_pylint": {
+        "true_positives": 23,
+        "false_negatives_pylint": 51,
+        "precision": 0.8518518518518519,
+        "recall": 0.3108108108108108,
+        "f1_score": 0.4554455445544554
+    },
+    "comparison_vs_radon": {
+        "true_positives": 1,
+        "false_negatives_radon": 0,
+        "precision": 0.2,
+        "recall": 1.0,
+        "f1_score": 0.33333333333333337
+    },
+    "ai_false_positives": 4
+}

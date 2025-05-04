@@ -1,0 +1,191 @@
+{
+    "repository": "public-apis",
+    "files": {
+        "scripts/validate/format.py": [
+            {
+                "lines": "1. **Long Method**",
+                "description": "The `check_file_format` function is quite long and handles multiple responsibilities, including checking category headers, entry counts, and individual entry formats. (Lines 201-255)"
+            },
+            {
+                "lines": "2. **Long Method**",
+                "description": "The `get_categories_content` function is also long and handles multiple responsibilities, including parsing categories and their associated APIs. (Lines 50-72)"
+            },
+            {
+                "lines": "3. **Long Method**",
+                "description": "The `check_entry` function is long and handles multiple checks for each entry, including title, description, auth, https, and cors. (Lines 166-193)"
+            },
+            {
+                "lines": "4. **Data Clump**",
+                "description": "The `check_title`, `check_description`, `check_auth`, `check_https`, and `check_cors` functions all take `line_num` and a string as parameters, suggesting that these parameters are often passed together. (Lines 75, 94, 115, 130, 140, 166)"
+            },
+            {
+                "lines": "5. **Primitive Obsession**",
+                "description": "The code uses primitive types (e.g., `List[str]`, `str`) for complex data like categories and entries, which could be better represented with custom classes. (Lines 50, 201, etc.)"
+            },
+            {
+                "lines": "6. **Feature Envy**",
+                "description": "The `check_alphabetical_order` function heavily relies on the `get_categories_content` function to get the categories and their line numbers, suggesting it might be better placed within a class that manages categories. (Lines 135-150)"
+            },
+            {
+                "lines": "7. **Code Duplication**",
+                "description": "The error message construction is repeated in multiple places (`error_message` function is called repeatedly). While not a severe duplication, it could be refactored for consistency. (Lines 135, 201, etc.)"
+            },
+            {
+                "lines": "8. **Magic Numbers**",
+                "description": "The code uses magic numbers like `num_segments = 5` and `min_entries_per_category = 3` without clear explanation. (Lines 28-29)"
+            },
+            {
+                "lines": "9. **Inconsistent Naming**",
+                "description": "The variable `punctuation` is redefined (line 8) and then used as a string (line 115), which can be confusing. (Lines 8, 115)"
+            },
+            {
+                "lines": "10. **Dead Code**",
+                "description": "The `index_desc`, `index_auth`, `index_https`, and `index_cors` variables are defined but not used in the code. (Lines 20-23)"
+            }
+        ],
+        "scripts/validate/__init__.py": [
+            {
+                "lines": "1. **Unused Imports ( 3-4)**",
+                "description": "The imports `format` and `links` from the `validate` package are not used in the code block. This can be considered a code smell because it indicates that the code may not be fully utilizing its dependencies or that there may be unnecessary dependencies."
+            }
+        ],
+        "scripts/validate/links.py": [
+            {
+                "lines": "1. 10-14",
+                "description": "Long Method - The `find_links_in_text` function is relatively long and complex, with a complicated regular expression pattern."
+            },
+            {
+                "lines": "2. 18-27",
+                "description": "Long Method - The `find_links_in_file` function is longer than necessary, with multiple responsibilities (reading the file, finding the index section, and extracting links)."
+            },
+            {
+                "lines": "3. 31-48",
+                "description": "Long Method - The `check_duplicate_links` function is longer than necessary, with multiple responsibilities (checking for duplicates and building a list of duplicates)."
+            },
+            {
+                "lines": "4. 51-60",
+                "description": "Long Method - The `fake_user_agent` function is longer than necessary, with a hardcoded list of user agents that could be moved to a constant or configuration file."
+            },
+            {
+                "lines": "5. 63-75",
+                "description": "Long Method - The `get_host_from_link` function is longer than necessary, with multiple responsibilities (extracting the host and removing routes, arguments, and anchors)."
+            },
+            {
+                "lines": "6. 78-120",
+                "description": "Long Method - The `has_cloudflare_protection` function is very long and complex, with multiple responsibilities (checking for Cloudflare protection, checking status codes, and checking for specific flags in the response)."
+            },
+            {
+                "lines": "7. 123-170",
+                "description": "Long Method - The `check_if_link_is_working` function is very long and complex, with multiple responsibilities (checking for errors, handling exceptions, and building error messages)."
+            },
+            {
+                "lines": "8. 173-181",
+                "description": "Long Method - The `check_if_list_of_links_are_working` function is longer than necessary, with multiple responsibilities (iterating over links and collecting error messages)."
+            },
+            {
+                "lines": "9. 184-201",
+                "description": "Long Method - The `start_duplicate_links_checker` function is longer than necessary, with multiple responsibilities (checking for duplicates and printing results)."
+            },
+            {
+                "lines": "10. 204-217",
+                "description": "Long Method - The `start_links_working_checker` function is longer than necessary, with multiple responsibilities (checking if links are working and printing results)."
+            },
+            {
+                "lines": "11. 220-225",
+                "description": "Long Method - The `main` function is longer than necessary, with multiple responsibilities (finding links, checking duplicates, and checking if links are working)."
+            },
+            {
+                "lines": "12. 228-244",
+                "description": "Long Method - The `if __name__ == '__main__'` block is longer than necessary, with multiple responsibilities (parsing command-line arguments and calling the main function)."
+            },
+            {
+                "lines": "13. 10-14, 18-27, 31-48, 51-60, 63-75, 78-120, 123-170, 173-181, 184-201, 204-217, 220-225, 228-244",
+                "description": "Data Clump - The `links` variable is passed around multiple functions, indicating a potential data clump."
+            },
+            {
+                "lines": "14. 10-14, 18-27, 31-48, 51-60, 63-75, 78-120, 123-170, 173-181, 184-201, 204-217, 220-225, 228-244",
+                "description": "Feature Envy - The `find_links_in_text`, `find_links_in_file`, `check_duplicate_links`, `fake_user_agent`, `get_host_from_link`, `has_cloudflare_protection`, `check_if_link_is_working`, `check_if_list_of_links_are_working`, `start_duplicate_links_checker`, `start_links_working_checker`, and `main` functions all have a high degree of coupling with the `links` variable, indicating feature envy."
+            }
+        ],
+        "scripts/tests/__init__.py": [
+            {
+                "lines": "### 1. ** 1",
+                "description": "Missing Docstring**"
+            },
+            {
+                "lines": "- **Description**",
+                "description": "The file lacks a docstring at the beginning to describe its purpose, contents, or any other relevant information. This makes it harder for developers to understand the file's role in the project."
+            },
+            {
+                "lines": "### 2. ** 1",
+                "description": "Unused Encoding Declaration**"
+            },
+            {
+                "lines": "- **Description**",
+                "description": "The `# -*- coding: utf-8 -*-` line is unnecessary in Python 3, as UTF-8 is the default source encoding. This line is a leftover from Python 2 and can be removed."
+            },
+            {
+                "lines": "### 3. ** 1",
+                "description": "Empty File**"
+            },
+            {
+                "lines": "- **Description**",
+                "description": "The file is completely empty except for the encoding declaration. This could indicate that the file is a placeholder or that its contents were deleted without removing the file itself. An empty `__init__.py` file is not necessarily a smell, but it might be worth verifying if the file is needed at all."
+            },
+            {
+                "lines": "### 4. **Potential Smell",
+                "description": "Unnecessary File**"
+            },
+            {
+                "lines": "- **Description**",
+                "description": "If the file is not needed (e.g., if it is an empty `__init__.py` in a test directory that does not require package initialization), it could be considered a smell. However, this depends on the project's structure and requirements."
+            }
+        ],
+        "scripts/tests/test_validate_format.py": [
+            {
+                "lines": "- `test_if_get_categories_content_return_correct_data_of_categories` (L42-70)",
+                "description": "The test method is too long and complex, making it hard to understand and maintain. It could be broken down into smaller, more focused test methods."
+            },
+            {
+                "lines": "- `test_check_description_with_punctuation_in_the_end` (L193-210)",
+                "description": "The test method is too long and complex, making it hard to understand and maintain. It could be broken down into smaller, more focused test methods."
+            },
+            {
+                "lines": "- `test_check_auth_with_invalid_auth` (L260-294)",
+                "description": "The test method is too long and complex, making it hard to understand and maintain. It could be broken down into smaller, more focused test methods."
+            },
+            {
+                "lines": "- `test_check_entry_with_incorrect_segments` (L400-415)",
+                "description": "The test method is too long and complex, making it hard to understand and maintain. It could be broken down into smaller, more focused test methods."
+            },
+            {
+                "lines": "- `test_check_file_format_with_correct_format` (L420-444)",
+                "description": "The test method is too long and complex, making it hard to understand and maintain. It could be broken down into smaller, more focused test methods."
+            },
+            {
+                "lines": "- `test_check_file_format_with_category_header_not_added_to_index` (L446-460)",
+                "description": "The test method is too long and complex, making it hard to understand and maintain. It could be broken down into smaller, more focused test methods."
+            },
+            {
+                "lines": "- `test_check_file_format_with_category_without_min_entries` (L462-485)",
+                "description": "The test method is too long and complex, making it hard to understand and maintain. It could be broken down into smaller, more focused test methods."
+            },
+            {
+                "lines": "- `test_check_file_format_entry_without_all_necessary_columns` (L487-504)",
+                "description": "The test method is too long and complex, making it hard to understand and maintain. It could be broken down into smaller, more focused test methods."
+            },
+            {
+                "lines": "- `test_check_file_format_without_1_space_between_the_segments` (L506-523)",
+                "description": "The test method is too long and complex, making it hard to understand and maintain. It could be broken down into smaller, more focused test methods."
+            }
+        ]
+    },
+    "summary": {
+        "total_files_processed": 6,
+        "total_files_skipped_size": 0,
+        "total_files_skipped_read_error": 0,
+        "total_files_skipped_empty": 0,
+        "total_files_failed_api": 0,
+        "total_smells_detected": 42
+    }
+}

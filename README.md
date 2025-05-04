@@ -1,159 +1,157 @@
-# Evaluating Technical Debt Reduction from AI-based Code Refactoring
+# Automated Refactoring & Metric Collection Workflow
 
-This repository provides a structured approach to evaluate technical debt reduction in Python code refactored using AI tools such as DeepSeek. It leverages open-source Python libraries to automatically analyze and compare code quality before and after refactoring.
-
----
-
-## ⚙️ Setup
-
-### 1. Clone this Repository
-
-Ensure you have both the original and refactored code versions structured in separate directories, for example:
-
-```
-project/
-├── original_code/
-└── refactored_code/
-```
-
-### 2. Install Required Python Libraries
-
-Execute the following commands in your terminal to install the required analysis libraries:
-
-```bash
-pip install radon bandit pylint
-```
+This README outlines the exact steps and code requirements to implement the methodology for evaluating DeepSeek’s AI-powered refactoring on popular Python open-source projects. By following this guide, your scripts will perform repository retrieval, smell detection, test generation, AI-driven refactoring, metric extraction, and result aggregation in CSV format.
 
 ---
 
-## 📊 Running the Analyses
+## 📋 Prerequisites
 
-The analysis compares metrics collected by Radon, Bandit, and PyLint.
+- **Python 3.9+** installed
+- **GitHub Personal Access Token** with `repo` scope
+- **DeepSeek Free API Key**
+- Install required Python libraries:
 
-### Radon: Complexity and Maintainability
-
-Radon computes code complexity (Cyclomatic Complexity - CC) and Maintainability Index (MI).
-
-Run Radon analyses with these commands:
-
-```bash
-# Complexity (Cyclomatic Complexity)
-radon cc original_code/ -s -j > radon_complex_original.json
-radon cc refactored_code/ -s -j > radon_complex_refactored.json
-
-# Maintainability Index
-radon mi original_code/ -s -j > radon_mi_original.json
-radon mi refactored_code/ -s -j > radon_mi_refactored.json
-```
-
-These commands:
-
-- Analyze all Python files in each directory.
-- Output results in JSON format for automated parsing.
-
-### Bandit: Security Analysis
-
-Bandit performs static security analysis, detecting potential vulnerabilities:
-
-```bash
-bandit -r original_code/ -f json -o bandit_original.json
-bandit -r refactored_code/ -f json -o bandit_refactored.json
-```
-
-These commands:
-
-- Scan directories recursively for security vulnerabilities.
-- Save the results into JSON files.
-
-### PyLint: Code Quality and Style
-
-PyLint identifies style issues, potential bugs, and coding errors:
-
-```bash
-pylint original_code/ --output-format=json > pylint_original.json
-pylint refactored_code/ --output-format=json > pylint_refactored.json
-```
-
-These commands:
-
-- Produce a detailed JSON-formatted report of issues.
+  ```bash
+  pip install requests PyGithub radon bandit pylint pyright pandas
+  ```
 
 ---
 
-## 📌 Automated Metrics Calculation
+## 🔧 Setup
 
-### Running the Python Script
+1. **Environment Variables**
 
-Create a Python script (`evaluate_tech_debt.py`) in the root directory:
+   - `GITHUB_TOKEN`: your GitHub PAT
+   - `DEEPSEEK_API_KEY`: your DeepSeek free API key
+
+2. **Directory Structure**
+
+   ```
+   project-root/
+   ├── original_code/         # Repositories cloned from GitHub
+   ├── refactored_code/       # Output folders per prompt strategy
+   │   ├── zero_shot/
+   │   ├── one_shot/
+   │   └── cot/
+   ├── metrics/               # JSON and CSV results
+   ├── scripts/               # Python scripts for each step
+   └── README.md              # This file
+   ```
+
+---
+
+## 🚀 Workflow Steps
+
+### 1. Fetch Top Python Repositories
+
+- Use GitHub API (via `PyGithub`) to search and clone the top _N_ most starred Python repositories.
+- Filter out forks and archived projects.
+
+**Example snippet:**
 
 ```python
-import json
+from github import Github
 
-def load_json(path):
-    with open(path, 'r') as file:
-        return json.load(file)
-
-def average_complexity(radon_cc):
-    complexities = [f["complexity"] for f in radon_cc.values()]
-    return sum(complexities) / len(complexities)
-
-def average_mi(radon_mi):
-    indices = [f["mi"] for f in radon_mi.values()]
-    return sum(indices) / len(indices)
-
-def vulnerabilities_count(bandit):
-    return len(bandit["results"])
-
-def pylint_issues_count(pylint):
-    return len(pylint)
-
-folders = ["original", "refactored"]
-metrics = {}
-
-for folder in folders:
-    metrics[folder] = {}
-    radon_cc = load_json(f"radon_complex_{folder}.json")
-    radon_mi = load_json(f"radon_mi_{folder}.json")
-    bandit = load_json(f"bandit_{folder}.json")
-    pylint = load_json(f"pylint_{folder}.json")
-
-    metrics[folder]["avg_complexity"] = average_complexity(radon_cc)
-    metrics[folder]["avg_mi"] = average_mi(radon_mi)
-    metrics[folder]["vulnerabilities"] = vulnerabilities_count(bandit)
-    metrics[folder]["pylint_issues"] = pylint_issues_count(pylint)
-
-for metric in ["avg_complexity", "avg_mi", "vulnerabilities", "pylint_issues"]:
-    original = metrics["original"][metric]
-    refactored = metrics["refactored"][metric]
-    print(f"{metric}: Original={original:.2f}, Refactored={refactored:.2f}, Change={refactored - original:.2f}")
+g = Github(os.getenv("GITHUB_TOKEN"))
+for repo in g.search_repositories("language:python", sort="stars", order="desc")[:N]:
+    if not repo.fork and not repo.archived:
+        repo.clone_url  # git clone into original_code/
 ```
 
-Run this script:
+### 2. Detect Code Smells with Local Libraries
+
+- Run static analysis with **PyLint** and **Radon** on each cloned repo.
+- Save results in `metrics/{repo_name}/smells_lib.json`.
 
 ```bash
-python evaluate_tech_debt.py
+pylint original_code/{repo}/ --output-format=json > metrics/{repo}/smells_lib_pylint.json
+radon cc original_code/{repo}/ -s -j > metrics/{repo}/smells_lib_radon.json
+```
+
+### 3. Identify Code Smells with DeepSeek
+
+- Send each file path and content to DeepSeek’s `/detect_smells` endpoint using a single consistent prompt.
+- Compare and map DeepSeek’s detected smells to the library results.
+- Record mismatches (false positives/negatives) in `metrics/{repo}/smells_deepseek.json`.
+
+```python
+import requests
+
+def detect_smells_with_deepseek(code: str):
+    r = requests.post(
+        "https://api.deepseek.ai/detect_smells",
+        headers={"Authorization": f"Bearer {DEEPSEEK_API_KEY}"},
+        json={"prompt": STANDARD_SMELL_PROMPT, "code": code}
+    )
+    return r.json()
+```
+
+### 4. Generate Tests if Missing
+
+- Check for existing test files; if none or incomplete, call DeepSeek’s `/generate_tests` endpoint with the same prompt.
+- Save generated tests under `original_code/{repo}/tests/` and ensure they pass before refactoring.
+
+### 5. Refactor Code with Three Prompt Strategies
+
+For each smell location:
+
+- **Zero-Shot**: call `/refactor` with zero-shot prompt
+- **One-Shot**: include one example in the prompt
+- **Chain-of-Thought (CoT)**: include reasoning steps in the prompt
+
+Save each refactored file tree under `refactored_code/{strategy}/{repo}/`.
+
+### 6. Post-Refactor Analysis
+
+- Run **PyLint**, **Radon**, **PyRight**, and **Bandit** on each refactored directory.
+- Store outputs in `metrics/{repo}/{strategy}/`:
+
+  - `pylint.json`
+  - `radon_cc.json`, `radon_mi.json`
+  - `pyright.json`
+  - `bandit.json`
+
+### 7. Aggregate Metrics & CSV Export
+
+- Write a Python aggregation script that:
+
+  1. Reads all JSON metric files
+  2. Computes delta against original metrics
+  3. Records:
+
+     - `repository_name`
+     - `strategy` (zero_shot, one_shot, cot)
+     - `num_smells_detected_lib`
+     - `num_smells_detected_deepseek`
+     - `num_false_positives`
+     - `num_false_negatives`
+     - `pylint_score_delta`
+     - `avg_cyclomatic_delta`
+     - `maintainability_index_delta`
+     - `pyright_error_delta`
+     - `bandit_vuln_delta`
+
+  4. Saves final table as `metrics/summary.csv` using **pandas**.
+
+**Example aggregation snippet:**
+
+```python
+import pandas as pd
+# ... load JSON metrics and compute deltas ...
+rows = []
+# for each repo and strategy, append dict to rows
+summary_df = pd.DataFrame(rows)
+summary_df.to_csv("metrics/summary.csv", index=False)
 ```
 
 ---
 
-## 📈 Interpreting Results
+## 🎯 Expected Outcomes
 
-Sample output:
-
-```
-avg_complexity: Original=9.20, Refactored=5.30, Change=-3.90
-avg_mi: Original=67.50, Refactored=79.80, Change=12.30
-vulnerabilities: Original=12.00, Refactored=4.00, Change=-8.00
-pylint_issues: Original=40.00, Refactored=15.00, Change=-25.00
-```
-
-**Interpretation:**
-
-- A negative change in `avg_complexity`, `vulnerabilities`, and `pylint_issues` indicates improvement.
-- A positive change in `avg_mi` indicates better maintainability.
+- A complete CSV summarizing how DeepSeek’s refactoring (per prompt) impacts code quality and technical debt.
+- Direct comparison between library-based vs. AI-based smell detection.
+- Clear data to answer research questions on prompt efficiency and refactoring effectiveness.
 
 ---
 
-## 🚀 Conclusion
-
-By following these steps, you effectively evaluate whether AI-based refactoring reduces technical debt, improving code maintainability, security, and readability, using fully automated, open-source Python libraries.
+Follow each step precisely in your scripts under `scripts/` to ensure reproducibility and consistency across experiments.
