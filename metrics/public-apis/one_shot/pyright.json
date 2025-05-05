@@ -1,0 +1,1193 @@
+{
+    "version": "1.1.400",
+    "time": "1746403237957",
+    "generalDiagnostics": [
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "Function with declared return type \"str\" must return value on all code paths\n  \"None\" is not assignable to \"str\"",
+            "range": {
+                "start": {
+                    "line": 10,
+                    "character": 34
+                },
+                "end": {
+                    "line": 10,
+                    "character": 37
+                }
+            },
+            "rule": "reportReturnType"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "Function with declared return type \"str\" must return value on all code paths\n  \"None\" is not assignable to \"str\"",
+            "range": {
+                "start": {
+                    "line": 17,
+                    "character": 33
+                },
+                "end": {
+                    "line": 17,
+                    "character": 36
+                }
+            },
+            "rule": "reportReturnType"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "Expected indented block",
+            "range": {
+                "start": {
+                    "line": 19,
+                    "character": 0
+                },
+                "end": {
+                    "line": 19,
+                    "character": 0
+                }
+            }
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "Unexpected indentation",
+            "range": {
+                "start": {
+                    "line": 20,
+                    "character": 0
+                },
+                "end": {
+                    "line": 20,
+                    "character": 8
+                }
+            }
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"content\" is not defined",
+            "range": {
+                "start": {
+                    "line": 20,
+                    "character": 18
+                },
+                "end": {
+                    "line": 20,
+                    "character": 25
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "Unindent not expected",
+            "range": {
+                "start": {
+                    "line": 22,
+                    "character": 0
+                },
+                "end": {
+                    "line": 22,
+                    "character": 11
+                }
+            }
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "warning",
+            "message": "Unsupported escape sequence in string literal",
+            "range": {
+                "start": {
+                    "line": 39,
+                    "character": 33
+                },
+                "end": {
+                    "line": 39,
+                    "character": 35
+                }
+            },
+            "rule": "reportInvalidStringEscapeSequence"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "warning",
+            "message": "Unsupported escape sequence in string literal",
+            "range": {
+                "start": {
+                    "line": 43,
+                    "character": 41
+                },
+                "end": {
+                    "line": 43,
+                    "character": 43
+                }
+            },
+            "rule": "reportInvalidStringEscapeSequence"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "warning",
+            "message": "Unsupported escape sequence in string literal",
+            "range": {
+                "start": {
+                    "line": 43,
+                    "character": 43
+                },
+                "end": {
+                    "line": 43,
+                    "character": 45
+                }
+            },
+            "rule": "reportInvalidStringEscapeSequence"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "warning",
+            "message": "Unsupported escape sequence in string literal",
+            "range": {
+                "start": {
+                    "line": 43,
+                    "character": 45
+                },
+                "end": {
+                    "line": 43,
+                    "character": 47
+                }
+            },
+            "rule": "reportInvalidStringEscapeSequence"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "warning",
+            "message": "Unsupported escape sequence in string literal",
+            "range": {
+                "start": {
+                    "line": 43,
+                    "character": 51
+                },
+                "end": {
+                    "line": 43,
+                    "character": 53
+                }
+            },
+            "rule": "reportInvalidStringEscapeSequence"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "warning",
+            "message": "Unsupported escape sequence in string literal",
+            "range": {
+                "start": {
+                    "line": 44,
+                    "character": 22
+                },
+                "end": {
+                    "line": 44,
+                    "character": 24
+                }
+            },
+            "rule": "reportInvalidStringEscapeSequence"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "warning",
+            "message": "Unsupported escape sequence in string literal",
+            "range": {
+                "start": {
+                    "line": 44,
+                    "character": 28
+                },
+                "end": {
+                    "line": 44,
+                    "character": 30
+                }
+            },
+            "rule": "reportInvalidStringEscapeSequence"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "warning",
+            "message": "Unsupported escape sequence in string literal",
+            "range": {
+                "start": {
+                    "line": 44,
+                    "character": 30
+                },
+                "end": {
+                    "line": 44,
+                    "character": 32
+                }
+            },
+            "rule": "reportInvalidStringEscapeSequence"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "warning",
+            "message": "Unsupported escape sequence in string literal",
+            "range": {
+                "start": {
+                    "line": 44,
+                    "character": 40
+                },
+                "end": {
+                    "line": 44,
+                    "character": 42
+                }
+            },
+            "rule": "reportInvalidStringEscapeSequence"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "Function with declared return type \"Tuple[Categories, CategoriesLineNumber]\" must return value on all code paths\n  \"None\" is not assignable to \"Tuple[Categories, CategoriesLineNumber]\"",
+            "range": {
+                "start": {
+                    "line": 61,
+                    "character": 51
+                },
+                "end": {
+                    "line": 61,
+                    "character": 90
+                }
+            },
+            "rule": "reportReturnType"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "Expected indented block",
+            "range": {
+                "start": {
+                    "line": 69,
+                    "character": 0
+                },
+                "end": {
+                    "line": 69,
+                    "character": 0
+                }
+            }
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "Expression of type \"None\" cannot be assigned to parameter of type \"List[str]\"\n  \"None\" is not assignable to \"List[str]\"",
+            "range": {
+                "start": {
+                    "line": 70,
+                    "character": 55
+                },
+                "end": {
+                    "line": 70,
+                    "character": 59
+                }
+            },
+            "rule": "reportArgumentType"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"defaultdict\" is not defined",
+            "range": {
+                "start": {
+                    "line": 83,
+                    "character": 26
+                },
+                "end": {
+                    "line": 83,
+                    "character": 37
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "Expression of type \"None\" cannot be assigned to parameter of type \"List[str]\"\n  \"None\" is not assignable to \"List[str]\"",
+            "range": {
+                "start": {
+                    "line": 87,
+                    "character": 59
+                },
+                "end": {
+                    "line": 87,
+                    "character": 63
+                }
+            },
+            "rule": "reportArgumentType"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"defaultdict\" is not defined",
+            "range": {
+                "start": {
+                    "line": 115,
+                    "character": 20
+                },
+                "end": {
+                    "line": 115,
+                    "character": 31
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "Type \"Dictionary\" is not assignable to return type \"Tuple[Dictionary, Dict[str, int]]\"\n  \"Dictionary\" is not assignable to \"Tuple[Dictionary, Dict[str, int]]\"",
+            "range": {
+                "start": {
+                    "line": 117,
+                    "character": 11
+                },
+                "end": {
+                    "line": 117,
+                    "character": 21
+                }
+            },
+            "rule": "reportReturnType"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"unique_formats\" is not defined",
+            "range": {
+                "start": {
+                    "line": 157,
+                    "character": 26
+                },
+                "end": {
+                    "line": 157,
+                    "character": 40
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "Cannot access attribute \"_is_valid_format\" for class \"CategoryManager*\"\n  Attribute \"_is_valid_format\" is unknown",
+            "range": {
+                "start": {
+                    "line": 159,
+                    "character": 28
+                },
+                "end": {
+                    "line": 159,
+                    "character": 44
+                }
+            },
+            "rule": "reportAttributeAccessIssue"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"invalid_formats\" is not defined",
+            "range": {
+                "start": {
+                    "line": 160,
+                    "character": 20
+                },
+                "end": {
+                    "line": 160,
+                    "character": 35
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"logger\" is not defined",
+            "range": {
+                "start": {
+                    "line": 163,
+                    "character": 20
+                },
+                "end": {
+                    "line": 163,
+                    "character": 26
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"_NON_STRING_FORMATS\" is not defined",
+            "range": {
+                "start": {
+                    "line": 165,
+                    "character": 77
+                },
+                "end": {
+                    "line": 165,
+                    "character": 96
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "Cannot access attribute \"_is_valid_format\" for class \"CategoryManager*\"\n  Attribute \"_is_valid_format\" is unknown",
+            "range": {
+                "start": {
+                    "line": 165,
+                    "character": 110
+                },
+                "end": {
+                    "line": 165,
+                    "character": 126
+                }
+            },
+            "rule": "reportAttributeAccessIssue"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"invalid_formats\" is not defined",
+            "range": {
+                "start": {
+                    "line": 167,
+                    "character": 24
+                },
+                "end": {
+                    "line": 167,
+                    "character": 39
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"invalid_formats\" is not defined",
+            "range": {
+                "start": {
+                    "line": 169,
+                    "character": 15
+                },
+                "end": {
+                    "line": 169,
+                    "character": 30
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"invalid_formats\" is not defined",
+            "range": {
+                "start": {
+                    "line": 173,
+                    "character": 15
+                },
+                "end": {
+                    "line": 173,
+                    "character": 30
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"invalid_formats\" is not defined",
+            "range": {
+                "start": {
+                    "line": 177,
+                    "character": 15
+                },
+                "end": {
+                    "line": 177,
+                    "character": 30
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"parse_api_entry_line\" is not defined",
+            "range": {
+                "start": {
+                    "line": 191,
+                    "character": 23
+                },
+                "end": {
+                    "line": 191,
+                    "character": 43
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"category\" is possibly unbound",
+            "range": {
+                "start": {
+                    "line": 192,
+                    "character": 27
+                },
+                "end": {
+                    "line": 192,
+                    "character": 35
+                }
+            },
+            "rule": "reportPossiblyUnboundVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"category_line_num\" is not defined",
+            "range": {
+                "start": {
+                    "line": 198,
+                    "character": 30
+                },
+                "end": {
+                    "line": 198,
+                    "character": 47
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"categories\" is not defined",
+            "range": {
+                "start": {
+                    "line": 200,
+                    "character": 30
+                },
+                "end": {
+                    "line": 200,
+                    "character": 40
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"category_line_num\" is not defined",
+            "range": {
+                "start": {
+                    "line": 203,
+                    "character": 16
+                },
+                "end": {
+                    "line": 203,
+                    "character": 33
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"err_msgs\" is not defined",
+            "range": {
+                "start": {
+                    "line": 206,
+                    "character": 12
+                },
+                "end": {
+                    "line": 206,
+                    "character": 20
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"return\" can be used only within a function",
+            "range": {
+                "start": {
+                    "line": 208,
+                    "character": 4
+                },
+                "end": {
+                    "line": 208,
+                    "character": 10
+                }
+            }
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/scripts/validate/format.py",
+            "severity": "error",
+            "message": "\"err_msgs\" is not defined",
+            "range": {
+                "start": {
+                    "line": 208,
+                    "character": 11
+                },
+                "end": {
+                    "line": 208,
+                    "character": 19
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test___init__.py",
+            "severity": "error",
+            "message": "Import \"validate\" could not be resolved",
+            "range": {
+                "start": {
+                    "line": 1,
+                    "character": 5
+                },
+                "end": {
+                    "line": 1,
+                    "character": 13
+                }
+            },
+            "rule": "reportMissingImports"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"error_message\" is not defined",
+            "range": {
+                "start": {
+                    "line": 27,
+                    "character": 11
+                },
+                "end": {
+                    "line": 27,
+                    "character": 24
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"error_message\" is not defined",
+            "range": {
+                "start": {
+                    "line": 28,
+                    "character": 11
+                },
+                "end": {
+                    "line": 28,
+                    "character": 24
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"get_categories_content\" is not defined",
+            "range": {
+                "start": {
+                    "line": 33,
+                    "character": 36
+                },
+                "end": {
+                    "line": 33,
+                    "character": 58
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_alphabetical_order\" is not defined",
+            "range": {
+                "start": {
+                    "line": 45,
+                    "character": 15
+                },
+                "end": {
+                    "line": 45,
+                    "character": 39
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_alphabetical_order\" is not defined",
+            "range": {
+                "start": {
+                    "line": 51,
+                    "character": 15
+                },
+                "end": {
+                    "line": 51,
+                    "character": 39
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_title\" is not defined",
+            "range": {
+                "start": {
+                    "line": 58,
+                    "character": 11
+                },
+                "end": {
+                    "line": 58,
+                    "character": 22
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_title\" is not defined",
+            "range": {
+                "start": {
+                    "line": 59,
+                    "character": 11
+                },
+                "end": {
+                    "line": 59,
+                    "character": 22
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_title\" is not defined",
+            "range": {
+                "start": {
+                    "line": 60,
+                    "character": 11
+                },
+                "end": {
+                    "line": 60,
+                    "character": 22
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_description\" is not defined",
+            "range": {
+                "start": {
+                    "line": 64,
+                    "character": 11
+                },
+                "end": {
+                    "line": 64,
+                    "character": 28
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_description\" is not defined",
+            "range": {
+                "start": {
+                    "line": 65,
+                    "character": 11
+                },
+                "end": {
+                    "line": 65,
+                    "character": 28
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_description\" is not defined",
+            "range": {
+                "start": {
+                    "line": 66,
+                    "character": 11
+                },
+                "end": {
+                    "line": 66,
+                    "character": 28
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_description\" is not defined",
+            "range": {
+                "start": {
+                    "line": 67,
+                    "character": 11
+                },
+                "end": {
+                    "line": 67,
+                    "character": 28
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"max_description_length\" is not defined",
+            "range": {
+                "start": {
+                    "line": 67,
+                    "character": 87
+                },
+                "end": {
+                    "line": 67,
+                    "character": 109
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_auth\" is not defined",
+            "range": {
+                "start": {
+                    "line": 71,
+                    "character": 11
+                },
+                "end": {
+                    "line": 71,
+                    "character": 21
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_auth\" is not defined",
+            "range": {
+                "start": {
+                    "line": 72,
+                    "character": 11
+                },
+                "end": {
+                    "line": 72,
+                    "character": 21
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_auth\" is not defined",
+            "range": {
+                "start": {
+                    "line": 73,
+                    "character": 11
+                },
+                "end": {
+                    "line": 73,
+                    "character": 21
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_auth\" is not defined",
+            "range": {
+                "start": {
+                    "line": 74,
+                    "character": 11
+                },
+                "end": {
+                    "line": 74,
+                    "character": 21
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_https\" is not defined",
+            "range": {
+                "start": {
+                    "line": 78,
+                    "character": 11
+                },
+                "end": {
+                    "line": 78,
+                    "character": 22
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_https\" is not defined",
+            "range": {
+                "start": {
+                    "line": 79,
+                    "character": 11
+                },
+                "end": {
+                    "line": 79,
+                    "character": 22
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_https\" is not defined",
+            "range": {
+                "start": {
+                    "line": 80,
+                    "character": 11
+                },
+                "end": {
+                    "line": 80,
+                    "character": 22
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_cors\" is not defined",
+            "range": {
+                "start": {
+                    "line": 84,
+                    "character": 11
+                },
+                "end": {
+                    "line": 84,
+                    "character": 21
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_cors\" is not defined",
+            "range": {
+                "start": {
+                    "line": 85,
+                    "character": 11
+                },
+                "end": {
+                    "line": 85,
+                    "character": 21
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_cors\" is not defined",
+            "range": {
+                "start": {
+                    "line": 86,
+                    "character": 11
+                },
+                "end": {
+                    "line": 86,
+                    "character": 21
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_cors\" is not defined",
+            "range": {
+                "start": {
+                    "line": 87,
+                    "character": 11
+                },
+                "end": {
+                    "line": 87,
+                    "character": 21
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_entry\" is not defined",
+            "range": {
+                "start": {
+                    "line": 92,
+                    "character": 11
+                },
+                "end": {
+                    "line": 92,
+                    "character": 22
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_entry\" is not defined",
+            "range": {
+                "start": {
+                    "line": 95,
+                    "character": 11
+                },
+                "end": {
+                    "line": 95,
+                    "character": 22
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_entry\" is not defined",
+            "range": {
+                "start": {
+                    "line": 101,
+                    "character": 11
+                },
+                "end": {
+                    "line": 101,
+                    "character": 22
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_file_format\" is not defined",
+            "range": {
+                "start": {
+                    "line": 108,
+                    "character": 15
+                },
+                "end": {
+                    "line": 108,
+                    "character": 32
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_file_format\" is not defined",
+            "range": {
+                "start": {
+                    "line": 114,
+                    "character": 15
+                },
+                "end": {
+                    "line": 114,
+                    "character": 32
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_file_format\" is not defined",
+            "range": {
+                "start": {
+                    "line": 122,
+                    "character": 15
+                },
+                "end": {
+                    "line": 122,
+                    "character": 32
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"check_file_format\" is not defined",
+            "range": {
+                "start": {
+                    "line": 131,
+                    "character": 15
+                },
+                "end": {
+                    "line": 131,
+                    "character": 32
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"main\" is not defined",
+            "range": {
+                "start": {
+                    "line": 139,
+                    "character": 8
+                },
+                "end": {
+                    "line": 139,
+                    "character": 12
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        },
+        {
+            "file": "/home/arthur/Documents/code/College/T6/refactored_code/one_shot/public-apis/tests/test_format.py",
+            "severity": "error",
+            "message": "\"main\" is not defined",
+            "range": {
+                "start": {
+                    "line": 148,
+                    "character": 16
+                },
+                "end": {
+                    "line": 148,
+                    "character": 20
+                }
+            },
+            "rule": "reportUndefinedVariable"
+        }
+    ],
+    "summary": {
+        "filesAnalyzed": 6,
+        "errorCount": 65,
+        "warningCount": 9,
+        "informationCount": 0,
+        "timeInSec": 0.997
+    }
+}
+
