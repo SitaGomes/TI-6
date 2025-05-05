@@ -13,6 +13,10 @@ import logging
 ORIGINAL_CODE_DIR = "original_code"
 REFACTORED_CODE_DIR = "refactored_code"
 METRICS_DIR = "metrics"
+STRATEGIES = ["zero_shot", "one_shot", "cot"] # Added shared constant
+
+# --- Logging Setup ---
+log = logging.getLogger(__name__) # Initialize logger for this module
 
 # --- Environment & Configuration ---
 
@@ -250,3 +254,90 @@ def replace_code_block(original_content: str, start_line: int, end_line: int, re
     except Exception as e:
         log.error(f"Error replacing code block ({start_line}-{end_line}): {e}")
         return None
+
+# --- Metric Extraction Helpers ---
+
+def safe_load_json(file_path: str) -> dict | list | None:
+    """Safely loads JSON data from a file, returning None on error."""
+    if not os.path.exists(file_path):
+        log.warning(f"Metric file not found: {file_path}")
+        return None
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        log.error(f"Error loading/parsing JSON from {file_path}: {e}")
+        return None
+
+def get_pylint_score(data: list) -> float | None:
+    """Extracts the global Pylint score. Pylint JSON output is a list of messages.
+       The score is not directly in the JSON messages. 
+       Requires running pylint WITHOUT --exit-zero and capturing the score message from stdout/stderr.
+       Alternatively, parse messages to approximate a score (complex).
+       Current approach: Placeholder - returns None. Needs adjustment based on how score is obtained.
+    """
+    log.warning("Pylint score extraction is complex from JSON message list. Returning None.")
+    # If you capture the summary line like "Your code has been rated at X.XX/10", parse it here.
+    # Placeholder: If score were available in a dict format, it might look like:
+    # if isinstance(data, dict) and 'global_note' in data:
+    #     return data['global_note'] 
+    return None 
+
+def get_radon_cc_average(data: dict) -> float | None:
+    """Extracts the average Cyclomatic Complexity from Radon CC JSON (-s flag output)."""
+    # Radon cc -s -j output is a dict where keys are file paths.
+    # The average is not directly included in the per-file JSON when using -j.
+    # Need to calculate it manually or run radon cc -a separately.
+    # Calculating manually:
+    total_complexity = 0
+    total_blocks = 0
+    if isinstance(data, dict):
+        for file_path, blocks in data.items():
+            if isinstance(blocks, list):
+                for block in blocks:
+                    # Consider only functions/methods for average complexity
+                    if block.get('type') in ['function', 'method'] and isinstance(block.get('complexity'), int):
+                        total_complexity += block['complexity']
+                        total_blocks += 1
+    if total_blocks > 0:
+        return total_complexity / total_blocks
+    log.warning(f"Could not calculate average CC from Radon data: {data}")
+    return None
+
+def get_radon_mi_average(data: dict) -> float | None:
+    """Extracts the average Maintainability Index from Radon MI JSON (-s flag output)."""
+    # Radon mi -s -j output format: {"filepath": {"mi": score, ...}}
+    # We need the average across all files.
+    total_mi = 0.0
+    file_count = 0
+    if isinstance(data, dict):
+        for file_path, metrics in data.items():
+            if isinstance(metrics, dict) and 'mi' in metrics and isinstance(metrics['mi'], (float, int)):
+                total_mi += metrics['mi']
+                file_count += 1
+            else:
+                 log.debug(f"Skipping file in MI calculation due to unexpected format: {file_path} -> {metrics}")
+
+    if file_count > 0:
+        return total_mi / file_count
+    log.warning(f"Could not calculate average MI from Radon data: {data}")
+    return None
+
+def get_pyright_error_count(data: dict) -> int | None:
+    """Extracts the total error count from Pyright JSON output."""
+    if isinstance(data, dict) and 'summary' in data:
+        return data['summary'].get('errorCount', 0) # Default to 0 if key missing
+    log.warning(f"Could not extract Pyright error count from data: {data}")
+    return None
+
+def get_bandit_vuln_count(data: dict) -> int | None:
+    """Extracts the total number of detected vulnerabilities from Bandit JSON output."""
+    # Consider filtering by severity/confidence if needed later
+    if isinstance(data, dict) and 'results' in data:
+        return len(data['results']) # Count the number of issues found
+    # Bandit might output errors object instead of results if scan fails badly
+    if isinstance(data, dict) and 'errors' in data and not data.get('results'):
+         log.warning(f"Bandit output contains errors but no results: {len(data['errors'])} errors.")
+         return 0 # Or handle as error? Returning 0 vulns for now.
+    log.warning(f"Could not extract Bandit vulnerability count from data: {data}")
+    return None

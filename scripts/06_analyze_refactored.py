@@ -11,11 +11,9 @@ import subprocess
 import json
 from utils import (
     REFACTORED_CODE_DIR, METRICS_DIR, ensure_dir, save_json,
-    ORIGINAL_CODE_DIR
+    ORIGINAL_CODE_DIR, STRATEGIES
 )
 import logging
-
-STRATEGIES = ["zero_shot", "one_shot", "cot"]
 
 log = logging.getLogger(__name__)
 

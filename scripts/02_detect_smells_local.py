@@ -106,12 +106,29 @@ def analyze_repository(repo_name: str):
         # Consider -a for average complexity if needed in summary later
     ]
     print("\nRunning Radon CC...")
-    radon_success = run_analysis_tool(radon_command, radon_cc_output_file, repo_path)
-    if not radon_success:
+    radon_success_cc = run_analysis_tool(radon_command, radon_cc_output_file, repo_path)
+    if not radon_success_cc:
         print(f"Radon CC analysis failed for {repo_name}. See errors above.")
 
+    # 3. Run Radon (Maintainability Index)
+    radon_mi_output_file = os.path.join(metrics_repo_dir, "radon_mi.json") # Added MI output
+    radon_mi_command = [
+        sys.executable,
+        "-m",
+        "radon",
+        "mi",
+        repo_path,
+        "-s", # Show average MI
+        "-j"  # JSON output
+    ]
+    print("\nRunning Radon MI...")
+    radon_success_mi = run_analysis_tool(radon_mi_command, radon_mi_output_file, repo_path)
+    if not radon_success_mi:
+        print(f"Radon MI analysis failed for {repo_name}. See errors above.")
+
     print(f"--- Finished Analyzing: {repo_name} ---")
-    return pylint_success and radon_success # Return overall success for this repo
+    # Return overall success status
+    return pylint_success and radon_success_cc and radon_success_mi 
 
 if __name__ == "__main__":
     if not os.path.exists(ORIGINAL_CODE_DIR) or not os.listdir(ORIGINAL_CODE_DIR):

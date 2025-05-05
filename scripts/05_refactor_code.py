@@ -12,7 +12,7 @@ import time
 import shutil
 import re
 from utils import (
-    ORIGINAL_CODE_DIR, REFACTORED_CODE_DIR, METRICS_DIR,
+    ORIGINAL_CODE_DIR, REFACTORED_CODE_DIR, METRICS_DIR, STRATEGIES,
     ensure_dir, save_code, read_file_content, 
     get_deepseek_client, call_deepseek_api, extract_code_from_output,
     parse_line_range, extract_code_block, replace_code_block
@@ -25,7 +25,6 @@ from prompts import (
 import logging
 
 # --- Configuration ---
-STRATEGIES = ["zero_shot", "one_shot", "cot"]
 PROMPT_TEMPLATES = {
     "zero_shot": REFACTOR_ZERO_SHOT_PROMPT_TEMPLATE,
     "one_shot": REFACTOR_ONE_SHOT_PROMPT_TEMPLATE,
