@@ -1,4 +1,0 @@
-repository_name,strategy,num_smells_detected_lib,num_smells_detected_deepseek,num_false_positives,num_false_negatives,pylint_score_delta,avg_cyclomatic_delta,maintainability_index_delta,pyright_error_delta,bandit_vuln_delta
-public-apis,zero_shot,75,42,4,51,,1.029370629370629,,63,104
-public-apis,one_shot,75,42,4,51,,1.029370629370629,,65,104
-public-apis,cot,75,42,4,51,,1.029370629370629,,54,104

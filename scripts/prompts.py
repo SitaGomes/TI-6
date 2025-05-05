@@ -36,77 +36,117 @@ Generated pytest code:
 
 # Placeholder - Refine as needed
 REFACTOR_ZERO_SHOT_PROMPT_TEMPLATE = """
-Refactor the following Python code block from the file '{file_path}' to address the code smell identified around line {line_number}: '{smell_description}'.
-Apply the most appropriate refactoring technique to improve code quality (e.g., Extract Method, Move Field, Replace Magic Number with Symbolic Constant).
-Output only the refactored Python code block. Do not include explanations or surrounding code.
+Refactor the entire Python code from file '{file_path}' to address the code smells listed below. 
+Apply the most appropriate refactoring techniques to improve overall code quality, maintainability, and readability based on these smells.
+Output ONLY the complete refactored code for the entire file. Do not include explanations, comments about changes, or markdown formatting.
 
-Original Code Block:
+Identified Smells:
+{smell_list_string}
+
+Original Code ({file_path}):
 ```python
-{code_block}
+{full_code_content}
 ```
 
-Refactored Code Block:
+Refactored Code ({file_path}):
 ```python
-# Refactored code goes here
+# Full refactored code goes here
 ```
 """
 
-# Placeholder - Needs a concrete example
+# Placeholder - Needs a concrete example related to whole-file refactoring
 REFACTOR_ONE_SHOT_PROMPT_TEMPLATE = """
-Refactor the following Python code block from the file '{file_path}' to address the code smell identified around line {line_number}: '{smell_description}'.
-Apply the most appropriate refactoring technique. Follow the example provided.
+Refactor the entire Python code from file '{file_path}' to address the code smells listed below, following the example format.
+Apply the most appropriate refactoring techniques to improve overall code quality.
+Output ONLY the complete refactored code for the entire file.
 
 Example:
-Smell: Magic Number
-Original Code Block from 'calculator.py' (Smell: 'Magic Number' near line 5):
+File: 'calculator_with_smells.py'
+Smells:
+- Lines 5-6: Magic Number (3.14159)
+- Lines 10-15: Long Method (add_and_log)
+Original Code:
 ```python
-def calculate_area(radius):
-    return 3.14159 * radius * radius
-```
-Refactored Code Block:
-```python
-import math
+import logging
 
 def calculate_area(radius):
-    PI = math.pi # Replace magic number with symbolic constant
+    # Uses magic number
+    return 3.14159 * radius * radius
+
+def add_and_log(a, b):
+    # Long method doing two things
+    result = a + b
+    logging.basicConfig(level=logging.INFO)
+    logging.info(f"Adding {a} and {b} resulted in {result}")
+    # Some more complex logging perhaps...
+    print(f"Debug: {result}") 
+    return result
+```
+Refactored Code:
+```python
+import logging
+import math
+
+logging.basicConfig(level=logging.INFO)
+
+PI = math.pi # Defined constant
+
+def calculate_area(radius):
+    # Uses constant
     return PI * radius * radius
+
+# Extracted logging function
+def log_addition(a, b, result):
+    logging.info(f"Adding {a} and {b} resulted in {result}")
+    print(f"Debug: {result}")
+    
+def add_and_log(a, b):
+    # Method now only calculates
+    result = a + b
+    log_addition(a, b, result) # Calls separate logging
+    return result
 ```
 
 ---
 
 Problem:
-Original Code Block from '{file_path}' (Smell: '{smell_description}' near line {line_number}):
+File: '{file_path}'
+Smells:
+{smell_list_string}
+Original Code:
 ```python
-{code_block}
+{full_code_content}
 ```
 
-Refactored Code Block (Output only the code):
+Refactored Code ({file_path}):
 ```python
-# Refactored code goes here
+# Full refactored code goes here
 ```
 """
 
 # Placeholder - Refine as needed
 REFACTOR_COT_PROMPT_TEMPLATE = """
-Refactor the following Python code block from the file '{file_path}' to address the code smell identified around line {line_number}: '{smell_description}'.
-First, think step-by-step about the smell and the best refactoring technique.
-Then, apply the refactoring.
-Output only the final refactored Python code block.
+Refactor the entire Python code from file '{file_path}' to address the code smells listed below.
+First, think step-by-step about how to address all the identified smells holistically.
+Then, apply the refactorings.
+Output ONLY the final, complete refactored code for the entire file.
 
-Original Code Block:
+Identified Smells:
+{smell_list_string}
+
+Original Code ({file_path}):
 ```python
-{code_block}
+{full_code_content}
 ```
 
 Thought Process:
-1.  Identify the specific issue related to '{smell_description}'.
-2.  Consider potential refactoring techniques (e.g., Extract Method, Introduce Parameter Object, etc.).
-3.  Select the most suitable technique based on the context.
-4.  Outline the steps to apply the chosen technique.
-5.  Execute the refactoring steps.
+1. Analyze the list of smells ({smell_list_string}) and their locations in the code.
+2. Consider refactoring techniques for each smell (e.g., Extract Method, Introduce Parameter Object, Replace Magic Number, etc.).
+3. Plan how to apply these refactorings to the entire file, considering potential interactions between changes.
+4. Execute the refactoring plan on the full code.
 
-Refactored Code Block:
+Refactored Code ({file_path}):
 ```python
-# Refactored code goes here
+# Full refactored code goes here
 ```
 """
