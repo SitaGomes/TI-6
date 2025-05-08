@@ -4,7 +4,7 @@ Stores the prompts used for interacting with the DeepSeek API.
 
 # Placeholder - Refine as needed
 STANDARD_SMELL_PROMPT_TEMPLATE = """
-Analyze the following Python code block from the file '{file_path}' and identify potential code smells.
+Analyze the following Python code block and identify potential code smells.
 List only the smells you find, specifying the line number(s) and a brief description for each.
 Focus on common smells like Long Method, Large Class, Feature Envy, Data Clump, Code Duplication, etc.
 Do not suggest refactorings, just identify the smells.
@@ -19,7 +19,7 @@ Detected Smells (Line number(s): Description):
 
 # Placeholder - Refine as needed
 TEST_GENERATION_PROMPT_TEMPLATE = """
-Generate comprehensive pytest unit tests for the following Python code from the file '{file_path}'.
+Generate comprehensive pytest unit tests for the following Python code.
 Ensure the tests cover various scenarios, including edge cases and potential errors.
 Output only the Python code for the tests. Assume necessary imports like 'pytest' are handled.
 
@@ -36,19 +36,19 @@ Generated pytest code:
 
 # Placeholder - Refine as needed
 REFACTOR_ZERO_SHOT_PROMPT_TEMPLATE = """
-Refactor the entire Python code from file '{file_path}' to address the code smells listed below. 
+Refactor the entire Python code to address the code smells listed below. 
 Apply the most appropriate refactoring techniques to improve overall code quality, maintainability, and readability based on these smells.
 Output ONLY the complete refactored code for the entire file. Do not include explanations, comments about changes, or markdown formatting.
 
 Identified Smells:
 {smell_list_string}
 
-Original Code ({file_path}):
+Original Code:
 ```python
 {full_code_content}
 ```
 
-Refactored Code ({file_path}):
+Refactored Code:
 ```python
 # Full refactored code goes here
 ```
@@ -56,7 +56,7 @@ Refactored Code ({file_path}):
 
 # Placeholder - Needs a concrete example related to whole-file refactoring
 REFACTOR_ONE_SHOT_PROMPT_TEMPLATE = """
-Refactor the entire Python code from file '{file_path}' to address the code smells listed below, following the example format.
+Refactor the entire Python code to address the code smells listed below, following the example format.
 Apply the most appropriate refactoring techniques to improve overall code quality.
 Output ONLY the complete refactored code for the entire file.
 
@@ -77,9 +77,9 @@ def add_and_log(a, b):
     # Long method doing two things
     result = a + b
     logging.basicConfig(level=logging.INFO)
-    logging.info(f"Adding {a} and {b} resulted in {result}")
+    logging.info(f"Adding {{a}} and {{b}} resulted in {{result}}")
     # Some more complex logging perhaps...
-    print(f"Debug: {result}") 
+    print(f"Debug: {{result}}") 
     return result
 ```
 Refactored Code:
@@ -97,8 +97,8 @@ def calculate_area(radius):
 
 # Extracted logging function
 def log_addition(a, b, result):
-    logging.info(f"Adding {a} and {b} resulted in {result}")
-    print(f"Debug: {result}")
+    logging.info(f"Adding {{a}} and {{b}} resulted in {{result}}")
+    print(f"Debug: {{result}}")
     
 def add_and_log(a, b):
     # Method now only calculates
@@ -110,7 +110,6 @@ def add_and_log(a, b):
 ---
 
 Problem:
-File: '{file_path}'
 Smells:
 {smell_list_string}
 Original Code:
@@ -118,7 +117,7 @@ Original Code:
 {full_code_content}
 ```
 
-Refactored Code ({file_path}):
+Refactored Code:
 ```python
 # Full refactored code goes here
 ```
@@ -126,7 +125,7 @@ Refactored Code ({file_path}):
 
 # Placeholder - Refine as needed
 REFACTOR_COT_PROMPT_TEMPLATE = """
-Refactor the entire Python code from file '{file_path}' to address the code smells listed below.
+Refactor the entire Python code from to address the code smells listed below.
 First, think step-by-step about how to address all the identified smells holistically.
 Then, apply the refactorings.
 Output ONLY the final, complete refactored code for the entire file.
@@ -134,7 +133,7 @@ Output ONLY the final, complete refactored code for the entire file.
 Identified Smells:
 {smell_list_string}
 
-Original Code ({file_path}):
+Original Code:
 ```python
 {full_code_content}
 ```
@@ -145,7 +144,7 @@ Thought Process:
 3. Plan how to apply these refactorings to the entire file, considering potential interactions between changes.
 4. Execute the refactoring plan on the full code.
 
-Refactored Code ({file_path}):
+Refactored Code:
 ```python
 # Full refactored code goes here
 ```

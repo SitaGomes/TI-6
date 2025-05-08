@@ -43,39 +43,66 @@ def get_github_token():
 # Configure based on DeepSeek model availability via OpenRouter
 # Using the free model identifier potentially used by OpenRouter
 DEEPSEEK_MODEL = "deepseek/deepseek-prover-v2:free" 
-MAX_RETRIES = 3
+MAX_RETRIES = 5
 RETRY_DELAY_SECONDS = 5
 
 def call_deepseek_api(prompt: str, client: OpenAI):
     """Calls the DeepSeek Chat Completion API with retry logic."""
     retries = 0
     while retries < MAX_RETRIES:
+        response = None # Ensure response is defined in the loop scope
         try:
+            log.debug(f"Calling API (Attempt {retries + 1}/{MAX_RETRIES}) Model: {DEEPSEEK_MODEL}")
             response = client.chat.completions.create(
                 model=DEEPSEEK_MODEL,
                 messages=[
-                    #{"role": "system", "content": "You are a helpful coding assistant specializing in Python refactoring."}, # Optional: Add system message if needed
+                    #{"role": "system", "content": "You are a helpful coding assistant specializing in Python refactoring."},
                     {"role": "user", "content": prompt}
                 ],
                 stream=False
-                # Add other parameters like temperature, max_tokens if needed
             )
-            return response.choices[0].message.content
+            log.debug(f"API Response received: {response}") # Log the raw response object
+
+            # --- Add more robust checks before accessing attributes --- 
+            if response and response.choices:
+                if len(response.choices) > 0:
+                    first_choice = response.choices[0]
+                    if first_choice.message:
+                        if first_choice.message.content is not None:
+                            return first_choice.message.content
+                        else:
+                            log.error(f"API Error: Response choice message content is None. Choice: {first_choice}")
+                            # Decide if retry is appropriate? Probably not if content is None.
+                            break # Stop retrying
+                    else:
+                        log.error(f"API Error: Response choice message is None. Choice: {first_choice}")
+                        break # Stop retrying
+                else:
+                    # This case might happen due to content filters
+                    log.error(f"API Error: Response choices list is empty. Response: {response}")
+                    # Check for finish reason, e.g., content filter
+                    finish_reason = response.choices[0].finish_reason if response.choices else 'unknown'
+                    log.error(f"Finish Reason (if available): {finish_reason}")                        
+                    break # Stop retrying if choices empty
+            else:
+                log.error(f"API Error: Invalid response structure (no choices attribute or response is None). Response: {response}")
+                break # Stop retrying
+                
         except RateLimitError as e:
-            print(f"Rate limit reached. Retrying in {RETRY_DELAY_SECONDS} seconds... ({retries + 1}/{MAX_RETRIES})")
-            time.sleep(RETRY_DELAY_SECONDS)
+            log.warning(f"Rate limit reached. Retrying in {RETRY_DELAY_SECONDS} seconds... ({retries + 1}/{MAX_RETRIES})")
             retries += 1
+            time.sleep(RETRY_DELAY_SECONDS)
         except APIError as e:
-            print(f"DeepSeek API error: {e}. Retrying in {RETRY_DELAY_SECONDS} seconds... ({retries + 1}/{MAX_RETRIES})")
-            time.sleep(RETRY_DELAY_SECONDS)
+            log.warning(f"DeepSeek API error: {e}. Retrying in {RETRY_DELAY_SECONDS} seconds... ({retries + 1}/{MAX_RETRIES})")
             retries += 1
+            time.sleep(RETRY_DELAY_SECONDS)
         except Exception as e:
-            print(f"An unexpected error occurred: {e}")
-            # Decide if retry is appropriate for other errors
-            # For now, we'll break the loop on unexpected errors
+            log.error(f"An unexpected error occurred during API call or response processing: {e}")
+            log.error(f"Response object at time of error: {response}") # Log response if available
+            # Stop retrying on unexpected errors during processing
             break 
 
-    print(f"Failed to get response from DeepSeek API after {MAX_RETRIES} retries.")
+    log.error(f"Failed to get valid response from API after {retries + 1} attempts.")
     return None # Indicate failure
 
 # --- File System Utilities ---
@@ -270,18 +297,57 @@ def safe_load_json(file_path: str) -> dict | list | None:
         return None
 
 def get_pylint_score(data: list) -> float | None:
-    """Extracts the global Pylint score. Pylint JSON output is a list of messages.
-       The score is not directly in the JSON messages. 
-       Requires running pylint WITHOUT --exit-zero and capturing the score message from stdout/stderr.
-       Alternatively, parse messages to approximate a score (complex).
-       Current approach: Placeholder - returns None. Needs adjustment based on how score is obtained.
+    """Calculates an approximated Pylint score from JSON message list.
+    
+    Since the score is not directly in the JSON output when using --output-format=json,
+    this function calculates an approximation based on message types.
+    
+    The default Pylint scoring formula is:
+    10.0 - ((5 * error + warning + refactor + convention) / statement) * 10
+    
+    Since we don't have statement count, we'll use a simpler formula based on
+    counts of different message types, with weights, with a base score of 10.
     """
-    log.warning("Pylint score extraction is complex from JSON message list. Returning None.")
-    # If you capture the summary line like "Your code has been rated at X.XX/10", parse it here.
-    # Placeholder: If score were available in a dict format, it might look like:
-    # if isinstance(data, dict) and 'global_note' in data:
-    #     return data['global_note'] 
-    return None 
+    if not data or not isinstance(data, list):
+        return None
+        
+    # Count message types
+    error_count = 0
+    warning_count = 0
+    refactor_count = 0
+    convention_count = 0
+    
+    for msg in data:
+        if not isinstance(msg, dict):
+            continue
+            
+        msg_type = msg.get('type')
+        if msg_type == 'error':
+            error_count += 1
+        elif msg_type == 'warning':
+            warning_count += 1
+        elif msg_type == 'refactor':
+            refactor_count += 1
+        elif msg_type == 'convention':
+            convention_count += 1
+    
+    # If no messages were found, return perfect score
+    total_messages = error_count + warning_count + refactor_count + convention_count
+    if total_messages == 0:
+        return 10.0
+        
+    # Calculate simplified score
+    # Weights: errors are most severe, then warnings, etc.
+    # These weights are approximations of Pylint's actual formula
+    weighted_score = 10.0 - min(10.0, (
+        (5.0 * error_count) + 
+        (1.0 * warning_count) + 
+        (0.5 * refactor_count) + 
+        (0.25 * convention_count)
+    ) / 10)
+    
+    # Ensure score is between 0 and 10
+    return max(0.0, min(10.0, weighted_score))
 
 def get_radon_cc_average(data: dict) -> float | None:
     """Extracts the average Cyclomatic Complexity from Radon CC JSON (-s flag output)."""
