@@ -18,6 +18,7 @@ SCRIPTS_DIR = "scripts"
 ORIGINAL_CODE_DIR = "original_code"
 REFACTORED_CODE_DIR = "refactored_code"
 METRICS_DIR = "metrics"
+SMELL_STRATEGIES = ["standard", "zero_shot", "one_shot", "cot"]
 
 # Define the sequence of scripts to run for each repo
 # Use the new, simplified script names in fixed order
@@ -99,6 +100,10 @@ if __name__ == "__main__":
                         help="Skip deleting original_code and refactored_code directories at the end.")
     parser.add_argument("--start-from", type=str, default="01",
                         help="Start the workflow from a specific script number (e.g., '02', '05'). Requires --skip-fetch and assumes previous steps are done.")
+    parser.add_argument("--smell-strategy", choices=SMELL_STRATEGIES, default="standard",
+                        help="Strategy to use for code smell detection: standard, zero_shot, one_shot, or cot")
+    parser.add_argument("--all-smell-strategies", action="store_true",
+                        help="Run smell detection with all available strategies")
 
     args = parser.parse_args()
 
@@ -170,18 +175,57 @@ if __name__ == "__main__":
     for repo_name in fetched_repo_names:
         log.info(f"===== Processing Repository: {repo_name} =====")
         repo_failed = False
+        repo_warnings = []
         
         # Run scripts from the calculated start index using the fixed list
         for script_basename in REPO_PROCESSING_SCRIPTS[start_index:]:
-            if not run_script(script_basename, args=[repo_name], repo_name_for_log=repo_name):
-                log.error(f"Script {script_basename} failed for repo {repo_name}. Stopping processing for this repo.")
-                repo_failed = True
-                break # Stop processing this repo
+            # Special handling for smell detection script to support different strategies
+            if script_basename == "detect_smells_ai.py":
+                if args.all_smell_strategies:
+                    # Run the smell detection with each strategy
+                    all_strategies_succeeded = True
+                    for strategy in SMELL_STRATEGIES:
+                        strategy_args = [repo_name, "--strategy", strategy]
+                        log.info(f"Running smell detection with strategy: {strategy}")
+                        if not run_script(script_basename, args=strategy_args, repo_name_for_log=repo_name):
+                            log.warning(f"Smell detection with strategy {strategy} failed for repo {repo_name}, but continuing with other strategies.")
+                            all_strategies_succeeded = False
+                            repo_warnings.append(f"Smell detection with strategy {strategy} failed")
+                            # Continue with other strategies even if one fails
+                    
+                    if not all_strategies_succeeded:
+                        log.warning(f"Some smell detection strategies failed for repo {repo_name}, but continuing with workflow.")
+                else:
+                    # Run with the single specified strategy
+                    strategy_args = [repo_name, "--strategy", args.smell_strategy]
+                    if not run_script(script_basename, args=strategy_args, repo_name_for_log=repo_name):
+                        log.warning(f"Smell detection with strategy {args.smell_strategy} failed for repo {repo_name}, but continuing workflow.")
+                        repo_warnings.append(f"Smell detection with strategy {args.smell_strategy} failed")
+            else:
+                # Run other scripts normally
+                if not run_script(script_basename, args=[repo_name], repo_name_for_log=repo_name):
+                    log.warning(f"Script {script_basename} failed for repo {repo_name}, but continuing with next steps.")
+                    repo_warnings.append(f"Script {script_basename} failed")
+                    
+                    # If a critical script fails that would break the workflow chain,
+                    # we might need to skip the rest of the processing
+                    if script_basename in ["detect_smells_local.py"]:
+                        log.error(f"Critical script {script_basename} failed. Skipping remaining steps for repo {repo_name}.")
+                        repo_failed = True
+                        break
                 
         if repo_failed:
             failed_repos.append(repo_name)
+            log.error(f"===== Repository processing incomplete for: {repo_name} due to critical errors =====")
         else:
-             log.info(f"===== Successfully processed Repository: {repo_name} =====")
+            if repo_warnings:
+                log.warning(f"===== Processed Repository: {repo_name} with warnings: =====")
+                for warning in repo_warnings:
+                    log.warning(f"- {warning}")
+                # Still add to failed repos for reporting, but processing continued
+                failed_repos.append(repo_name)
+            else:
+                log.info(f"===== Successfully processed Repository: {repo_name} =====")
 
     if failed_repos:
         log.error("--- Workflow halted due to failures in processing the following repositories: ---")

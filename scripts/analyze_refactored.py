@@ -95,8 +95,8 @@ def analyze_refactored_code(repo_name: str, strategy: str):
     """Runs all analysis tools on a specific refactored version of the code."""
     strategy_repo_path = os.path.join(REFACTORED_CODE_DIR, strategy, repo_name)
     if not os.path.isdir(strategy_repo_path):
-        log.error(f"Refactored directory not found: {strategy_repo_path}")
-        return False
+        log.warning(f"Refactored directory not found: {strategy_repo_path}. Skipping analysis for this strategy.")
+        return True  # Return True to indicate "not an error", just missing
 
     # Output directory for this specific strategy's metrics
     metrics_output_dir = os.path.join(METRICS_DIR, repo_name, strategy)
@@ -187,28 +187,44 @@ def main_analysis_logic(repo_name: str):
 
     overall_success = True
     failed_strategies = []
+    analyzed_strategies = []
+    missing_strategies = []
 
     for strategy in STRATEGIES:
         strategy_path = os.path.join(REFACTORED_CODE_DIR, strategy, repo_name)
         if not os.path.exists(strategy_path):
             log.warning(f"Refactored directory for strategy '{strategy}' not found at {strategy_path}. Skipping analysis.")
+            missing_strategies.append(strategy)
             continue
             
+        analyzed_strategies.append(strategy)
         if not analyze_refactored_code(repo_name, strategy):
             overall_success = False
             failed_strategies.append(strategy)
 
-    log.info("\n--- Post-Refactor Analysis Summary --- ") # Added space for clarity
+    log.info("\n--- Post-Refactor Analysis Summary --- ")
+    
+    # If we didn't analyze any strategies, warn but don't fail
+    if not analyzed_strategies:
+        log.warning(f"No refactored code found for any strategy for repository {repo_name}.")
+        log.warning(f"Missing strategies: {', '.join(missing_strategies)}")
+        log.info(f"--- Post-Refactor Analysis Completed for Repository: {repo_name} (No strategies to analyze) ---")
+        return True  # Return success to allow the workflow to continue
+        
     if overall_success:
         log.info(f"All analyses completed successfully for repository: {repo_name}")
+        log.info(f"Analyzed strategies: {', '.join(analyzed_strategies)}")
     else:
-        log.error(f"One or more analyses failed for repository: {repo_name}")
-        log.error(f"Failed strategies/analyses: {', '.join(failed_strategies)}")
-        # Decide if this should be a fatal error for the whole workflow
-        # For now, just log and return status
+        log.warning(f"One or more analyses failed for repository: {repo_name}")
+        log.warning(f"Failed strategies/analyses: {', '.join(failed_strategies)}")
+        log.info(f"Successfully analyzed strategies: {', '.join([s for s in analyzed_strategies if s not in failed_strategies])}")
+        
+    if missing_strategies:
+        log.info(f"Skipped strategies (no refactored code): {', '.join(missing_strategies)}")
 
     log.info(f"--- Post-Refactor Analysis Completed for Repository: {repo_name} ---")
-    return overall_success
+    # Always return True to allow the workflow to continue, failures will be reported in the logs
+    return True
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run post-refactor analysis for a specific repository.")
