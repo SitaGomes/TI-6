@@ -13,12 +13,7 @@ from utils import (
     get_deepseek_client, call_deepseek_api, read_file_content,
     parse_smell_output
 )
-from prompts import (
-    STANDARD_SMELL_PROMPT_TEMPLATE, 
-    SMELL_ZERO_SHOT_PROMPT_TEMPLATE,
-    SMELL_ONE_SHOT_PROMPT_TEMPLATE,
-    SMELL_COT_PROMPT_TEMPLATE
-)
+from prompts import SMELL_ZERO_SHOT_PROMPT_TEMPLATE
 
 # --- Configuration ---
 # Limit number of files processed per repo for testing/cost control
@@ -30,9 +25,9 @@ MAX_FILE_SIZE_BYTES = 100 * 1024 # 100 KB limit
 # Delay between API calls in seconds to respect potential rate limits
 API_CALL_DELAY = 1.0 
 
-def analyze_file_with_ai(file_path: str, client, repo_name: str, strategy: str = "standard"):
-    """Reads a file, calls the AI for smell detection using specified strategy, and parses the result."""
-    print(f"  Analyzing file ({strategy}): {file_path}")
+def analyze_file_with_ai(file_path: str, client, repo_name: str):
+    """Reads a file, calls the AI for smell detection using zero-shot prompt, and parses the result."""
+    print(f"  Analyzing file: {file_path}")
     
     # Check file size
     try:
@@ -57,17 +52,8 @@ def analyze_file_with_ai(file_path: str, client, repo_name: str, strategy: str =
     # Relative path for the prompt context
     relative_file_path = os.path.relpath(file_path, os.path.join(ORIGINAL_CODE_DIR, repo_name))
 
-    # Select the appropriate prompt template based on the strategy
-    if strategy == "zero_shot":
-        prompt_template = SMELL_ZERO_SHOT_PROMPT_TEMPLATE
-    elif strategy == "one_shot":
-        prompt_template = SMELL_ONE_SHOT_PROMPT_TEMPLATE
-    elif strategy == "cot":
-        prompt_template = SMELL_COT_PROMPT_TEMPLATE
-    else:  # default to standard
-        prompt_template = STANDARD_SMELL_PROMPT_TEMPLATE
-
-    prompt = prompt_template.format(
+    # Use only zero-shot prompt template
+    prompt = SMELL_ZERO_SHOT_PROMPT_TEMPLATE.format(
         file_path=relative_file_path, 
         code_content=code_content
     )
@@ -83,8 +69,8 @@ def analyze_file_with_ai(file_path: str, client, repo_name: str, strategy: str =
     print(f"    Detected {len(detected_smells)} smells in {relative_file_path}")
     return detected_smells
 
-def detect_ai_smells(repo_name: str, strategy: str = "standard"):
-    """Detects smells in a repository using the AI model with specified strategy."""
+def detect_ai_smells(repo_name: str):
+    """Detects smells in a repository using the AI model with zero-shot prompt."""
     repo_path = os.path.join(ORIGINAL_CODE_DIR, repo_name)
     if not os.path.isdir(repo_path):
         print(f"Error: Repository directory not found: {repo_path}", file=sys.stderr)
@@ -93,13 +79,10 @@ def detect_ai_smells(repo_name: str, strategy: str = "standard"):
     metrics_repo_dir = os.path.join(METRICS_DIR, repo_name)
     ensure_dir(metrics_repo_dir)
     
-    # Add strategy to output filename for strategy-specific results
-    if strategy == "standard":
-        output_file = os.path.join(metrics_repo_dir, "smells_deepseek.json")
-    else:
-        output_file = os.path.join(metrics_repo_dir, f"smells_deepseek_{strategy}.json")
+    # Use single output filename
+    output_file = os.path.join(metrics_repo_dir, "smells_deepseek.json")
 
-    print(f"\n--- Detecting AI Smells for Repository: {repo_name} (Strategy: {strategy}) ---")
+    print(f"\n--- Detecting AI Smells for Repository: {repo_name} ---")
     
     try:
         client = get_deepseek_client()
@@ -109,7 +92,6 @@ def detect_ai_smells(repo_name: str, strategy: str = "standard"):
 
     all_smells_data = {
         "repository": repo_name,
-        "strategy": strategy,
         "files": {},
         "summary": {
             "total_files_processed": 0,
@@ -137,7 +119,7 @@ def detect_ai_smells(repo_name: str, strategy: str = "standard"):
                 file_path = os.path.join(root, file)
                 relative_file_path = os.path.relpath(file_path, repo_path)
                 
-                smells = analyze_file_with_ai(file_path, client, repo_name, strategy)
+                smells = analyze_file_with_ai(file_path, client, repo_name)
                 
                 # Update summary based on outcome
                 if smells is None:
@@ -174,7 +156,7 @@ def detect_ai_smells(repo_name: str, strategy: str = "standard"):
     print("Warning: Comparison with local library results is not yet implemented.")
 
     save_json(all_smells_data, output_file)
-    print(f"--- Finished AI Smell Detection ({strategy}): {repo_name} ---")
+    print(f"--- Finished AI Smell Detection: {repo_name} ---")
     print(f"Summary: {all_smells_data['summary']}")
     return True
 
@@ -182,8 +164,6 @@ def detect_ai_smells(repo_name: str, strategy: str = "standard"):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run AI smell detection on a specific repository.")
     parser.add_argument("repo_name", help="Name of the repository directory within original_code/")
-    parser.add_argument("--strategy", choices=["standard", "zero_shot", "one_shot", "cot"], 
-                        default="standard", help="Smell detection strategy to use")
     args = parser.parse_args()
 
     repo_full_path = os.path.join(ORIGINAL_CODE_DIR, args.repo_name)
@@ -194,9 +174,9 @@ if __name__ == "__main__":
     # Configure logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
         
-    print(f"\n--- Running AI Smell Detection ({args.strategy}) for: {args.repo_name} ---")
-    if detect_ai_smells(args.repo_name, args.strategy):
-        print(f"--- Successfully completed AI smell detection ({args.strategy}) for: {args.repo_name} ---")
+    print(f"\n--- Running AI Smell Detection for: {args.repo_name} ---")
+    if detect_ai_smells(args.repo_name):
+        print(f"--- Successfully completed AI smell detection for: {args.repo_name} ---")
     else:
-        print(f"--- AI smell detection ({args.strategy}) failed for: {args.repo_name} ---", file=sys.stderr)
+        print(f"--- AI smell detection failed for: {args.repo_name} ---", file=sys.stderr)
         sys.exit(1)

@@ -2,86 +2,12 @@
 Stores the prompts used for interacting with the DeepSeek API.
 """
 
-# Placeholder - Refine as needed
-STANDARD_SMELL_PROMPT_TEMPLATE = """
-Analyze the following Python code block and identify potential code smells.
-List only the smells you find, specifying the line number(s) and a brief description for each.
-Focus on common smells like Long Method, Large Class, Feature Envy, Data Clump, Code Duplication, etc.
-Do not suggest refactorings, just identify the smells.
-
-Code:
-```python
-{code_content}
-```
-
-Detected Smells (Line number(s): Description):
-"""
-
 # Zero-Shot smell detection prompt - direct and to the point
 SMELL_ZERO_SHOT_PROMPT_TEMPLATE = """
 Analyze the following Python code and identify code smells.
 List each smell you find with its line number(s) and a brief description.
 Focus on these smell types: Long Method, Large Class, Feature Envy, Data Clumps, 
 Code Duplication, Comments, Magic Numbers, Long Parameter List, Complex Conditionals.
-
-Code:
-```python
-{code_content}
-```
-
-Detected Smells (Line number(s): Description):
-"""
-
-# One-Shot smell detection prompt - provides an example to guide the model
-SMELL_ONE_SHOT_PROMPT_TEMPLATE = """
-Analyze the Python code and identify code smells, following this example:
-
-Example Code:
-```python
-import logging
-
-# Function to calculate area
-def calculate_area(rad):
-    # Calculate area of circle
-    return 3.14159 * rad * rad
-
-# Log operation and calculate sum
-def add_and_log(a, b):
-    result = a + b
-    logging.basicConfig(level=logging.INFO)
-    logging.info(f"Adding {a} and {b} resulted in {result}")
-    print(f"Debug: {result}")
-    return result
-```
-
-Example Detected Smells:
-- Line 5: Magic Number (3.14159 should be defined as a constant)
-- Lines 9-14: Long Method (doing both calculation and logging)
-- Line 10: Poor Variable Name ('a' and 'b' are not descriptive)
-- Line 12-13: Misplaced Responsibility (logging setup should not be in this function)
-
-Now analyze this code:
-```python
-{code_content}
-```
-
-Detected Smells (Line number(s): Description):
-"""
-
-# Chain-of-Thought smell detection prompt - guides the model through the reasoning process
-SMELL_COT_PROMPT_TEMPLATE = """
-Analyze the following Python code for code smells systematically following these steps:
-
-1. First, understand what the code does and identify its main components.
-2. Then, examine each function/method for Long Method or Complex Condition smells.
-3. Check for Magic Numbers, String Literals, or other constants that should be defined.
-4. Look for naming issues such as Poor Variable Names or Ambiguous Names.
-5. Identify duplicated code patterns or repeated logic.
-6. Examine class structures for Large Class, Feature Envy, or Inappropriate Intimacy smells.
-7. Check responsibilities - are functions doing too much or violating Single Responsibility?
-8. Note any commented-out code or excessive/outdated comments.
-
-After analyzing systematically, list all the smells you've found with line numbers and descriptions.
 
 Code:
 ```python
@@ -144,15 +70,13 @@ Original Code:
 import logging
 
 def calculate_area(radius):
-    # Uses magic number
     return 3.14159 * radius * radius
 
 def add_and_log(a, b):
-    # Long method doing two things
     result = a + b
     logging.basicConfig(level=logging.INFO)
     logging.info(f"Adding {{a}} and {{b}} resulted in {{result}}")
-    # Some more complex logging perhaps...
+
     print(f"Debug: {{result}}") 
     return result
 ```
@@ -163,19 +87,16 @@ import math
 
 logging.basicConfig(level=logging.INFO)
 
-PI = math.pi # Defined constant
+PI = math.pi
 
 def calculate_area(radius):
-    # Uses constant
     return PI * radius * radius
 
-# Extracted logging function
 def log_addition(a, b, result):
     logging.info(f"Adding {{a}} and {{b}} resulted in {{result}}")
     print(f"Debug: {{result}}")
     
 def add_and_log(a, b):
-    # Method now only calculates
     result = a + b
     log_addition(a, b, result) # Calls separate logging
     return result
@@ -204,19 +125,16 @@ First, think step-by-step about how to address all the identified smells holisti
 Then, apply the refactorings.
 Output ONLY the final, complete refactored code for the entire file.
 
-Identified Smells:
-{smell_list_string}
-
-Original Code:
-```python
-{full_code_content}
-```
-
 Thought Process:
 1. Analyze the list of smells ({smell_list_string}) and their locations in the code.
 2. Consider refactoring techniques for each smell (e.g., Extract Method, Introduce Parameter Object, Replace Magic Number, etc.).
 3. Plan how to apply these refactorings to the entire file, considering potential interactions between changes.
 4. Execute the refactoring plan on the full code.
+
+Original Code:
+```python
+{full_code_content}
+```
 
 Refactored Code:
 ```python
