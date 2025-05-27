@@ -23,12 +23,12 @@ log = logging.getLogger(__name__) # Initialize logger for this module
 def get_deepseek_client():
     """Initializes and returns the OpenAI client configured for DeepSeek via OpenRouter."""
     # Expects the OpenRouter API key to be set in this environment variable
-    api_key = ""
+    api_key = "ollama"
     if not api_key:
         raise ValueError("DEEPSEEK_API_KEY environment variable not set (expected OpenRouter key).")
     
     # Using OpenAI library compatibility pointed at OpenRouter
-    client = OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1") 
+    client = OpenAI(api_key=api_key, base_url="http://localhost:11434/v1") 
     return client
 
 def get_github_token():
@@ -42,7 +42,7 @@ def get_github_token():
 
 # Configure based on DeepSeek model availability via OpenRouter
 # Using the free model identifier potentially used by OpenRouter
-DEEPSEEK_MODEL = "deepseek/deepseek-prover-v2:free" 
+DEEPSEEK_MODEL = "deepseek-r1:1.5b" 
 MAX_RETRIES = 5
 RETRY_DELAY_SECONDS = 5
 
@@ -56,7 +56,6 @@ def call_deepseek_api(prompt: str, client: OpenAI):
             response = client.chat.completions.create(
                 model=DEEPSEEK_MODEL,
                 messages=[
-                    #{"role": "system", "content": "You are a helpful coding assistant specializing in Python refactoring."},
                     {"role": "user", "content": prompt}
                 ],
                 stream=False
