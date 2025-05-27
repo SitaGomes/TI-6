@@ -32,10 +32,31 @@ def get_deepseek_client():
     return client
 
 def get_github_token():
-    """Retrieves the GitHub token from environment variables."""
-    token = ""
+    """Retrieves the GitHub token from .env file or environment variables."""
+    # First try to load from .env file
+    env_file_path = os.path.join(os.path.dirname(__file__), '.env')
+    
+    if os.path.exists(env_file_path):
+        try:
+            with open(env_file_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith('GITHUB_TOKEN='):
+                        token = line.split('=', 1)[1].strip()
+                        # Remove quotes if present
+                        if token.startswith('"') and token.endswith('"'):
+                            token = token[1:-1]
+                        elif token.startswith("'") and token.endswith("'"):
+                            token = token[1:-1]
+                        if token:
+                            return token
+        except Exception as e:
+            log.warning(f"Error reading .env file: {e}")
+    
+    # Fallback to environment variable
+    token = os.getenv("GITHUB_TOKEN")
     if not token:
-        raise ValueError("GITHUB_TOKEN environment variable not set.")
+        raise ValueError("GITHUB_TOKEN not found in .env file or environment variables.")
     return token
 
 # --- API Interaction (Placeholder) ---
