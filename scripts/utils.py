@@ -427,3 +427,258 @@ def get_bandit_vuln_count(data: dict) -> int | None:
          return 0 # Or handle as error? Returning 0 vulns for now.
     log.warning(f"Could not extract Bandit vulnerability count from data: {data}")
     return None
+
+# --- Test Running Utilities ---
+
+def run_tests_with_pytest(code_directory: str, test_directory: str = None) -> dict | None:
+    """Runs pytest on the specified directory and returns test results.
+    
+    Args:
+        code_directory: Path to the code directory to test
+        test_directory: Optional specific test directory. If None, looks for 'tests' in code_directory
+    
+    Returns:
+        Dict with test results or None if tests couldn't be run
+    """
+    import subprocess
+    import sys
+    
+    if not os.path.exists(code_directory):
+        log.error(f"Code directory not found: {code_directory}")
+        return None
+    
+    # Determine test directory
+    if test_directory is None:
+        test_directory = os.path.join(code_directory, "tests")
+    
+    if not os.path.exists(test_directory):
+        log.warning(f"Test directory not found: {test_directory}")
+        return {"tests_found": False, "passed": 0, "failed": 0, "total": 0, "error": "No test directory found"}
+    
+    # Check if there are any test files
+    test_files = []
+    for root, dirs, files in os.walk(test_directory):
+        for file in files:
+            if file.startswith("test_") and file.endswith(".py") or file.endswith("_test.py"):
+                test_files.append(os.path.join(root, file))
+    
+    if not test_files:
+        log.warning(f"No test files found in: {test_directory}")
+        return {"tests_found": False, "passed": 0, "failed": 0, "total": 0, "error": "No test files found"}
+    
+    log.info(f"Running pytest on {len(test_files)} test files in: {test_directory}")
+    
+    # Run pytest with JSON output
+    pytest_command = [
+        sys.executable, "-m", "pytest", 
+        test_directory,
+        "--tb=short",  # Short traceback format
+        "--quiet",     # Reduce output verbosity
+        "--json-report", "--json-report-file=/tmp/pytest_report.json"  # JSON output
+    ]
+    
+    try:
+        # Run pytest
+        result = subprocess.run(
+            pytest_command, 
+            cwd=code_directory,
+            capture_output=True, 
+            text=True, 
+            encoding='utf-8',
+            timeout=300  # 5 minute timeout
+        )
+        
+        # Try to parse JSON report if available
+        json_report_path = "/tmp/pytest_report.json"
+        test_results = {
+            "tests_found": True,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "exit_code": result.returncode,
+            "stdout": result.stdout,
+            "stderr": result.stderr
+        }
+        
+        if os.path.exists(json_report_path):
+            try:
+                with open(json_report_path, 'r', encoding='utf-8') as f:
+                    json_data = json.load(f)
+                    summary = json_data.get('summary', {})
+                    test_results["passed"] = summary.get('passed', 0)
+                    test_results["failed"] = summary.get('failed', 0)
+                    test_results["total"] = summary.get('total', 0)
+                    test_results["duration"] = json_data.get('duration', 0)
+                # Clean up temp file
+                os.remove(json_report_path)
+            except Exception as e:
+                log.warning(f"Could not parse pytest JSON report: {e}")
+                # Fallback: parse from stdout
+                test_results.update(_parse_pytest_stdout(result.stdout))
+        else:
+            # Fallback: parse from stdout
+            test_results.update(_parse_pytest_stdout(result.stdout))
+        
+        log.info(f"Test results: {test_results['passed']}/{test_results['total']} passed")
+        return test_results
+        
+    except subprocess.TimeoutExpired:
+        log.error(f"Pytest timed out after 5 minutes for: {test_directory}")
+        return {"tests_found": True, "passed": 0, "failed": 0, "total": 0, "error": "Timeout"}
+    except FileNotFoundError:
+        log.error("pytest not found. Make sure pytest is installed.")
+        return {"tests_found": True, "passed": 0, "failed": 0, "total": 0, "error": "pytest not installed"}
+    except Exception as e:
+        log.error(f"Error running pytest: {e}")
+        return {"tests_found": True, "passed": 0, "failed": 0, "total": 0, "error": str(e)}
+
+# --- Test Running Utilities ---
+
+def run_tests_with_pytest(code_directory: str, test_directory: str = None) -> dict | None:
+    """Runs pytest on the specified directory and returns test results.
+    
+    Args:
+        code_directory: Path to the code directory to test
+        test_directory: Optional specific test directory. If None, looks for 'tests' in code_directory
+    
+    Returns:
+        Dict with test results or None if tests couldn't be run
+    """
+    import subprocess
+    import sys
+    
+    if not os.path.exists(code_directory):
+        log.error(f"Code directory not found: {code_directory}")
+        return None
+    
+    # Determine test directory
+    if test_directory is None:
+        test_directory = os.path.join(code_directory, "tests")
+    
+    if not os.path.exists(test_directory):
+        log.warning(f"Test directory not found: {test_directory}")
+        return {"tests_found": False, "passed": 0, "failed": 0, "total": 0, "error": "No test directory found"}
+    
+    # Check if there are any test files
+    test_files = []
+    for root, dirs, files in os.walk(test_directory):
+        for file in files:
+            if file.startswith("test_") and file.endswith(".py") or file.endswith("_test.py"):
+                test_files.append(os.path.join(root, file))
+    
+    if not test_files:
+        log.warning(f"No test files found in: {test_directory}")
+        return {"tests_found": False, "passed": 0, "failed": 0, "total": 0, "error": "No test files found"}
+    
+    log.info(f"Running pytest on {len(test_files)} test files in: {test_directory}")
+    
+    # Run pytest with JSON output
+    pytest_command = [
+        sys.executable, "-m", "pytest", 
+        test_directory,
+        "--tb=short",  # Short traceback format
+        "--quiet",     # Reduce output verbosity
+        "--json-report", "--json-report-file=/tmp/pytest_report.json"  # JSON output
+    ]
+    
+    try:
+        # Run pytest
+        result = subprocess.run(
+            pytest_command, 
+            cwd=code_directory,
+            capture_output=True, 
+            text=True, 
+            encoding='utf-8',
+            timeout=300  # 5 minute timeout
+        )
+        
+        # Try to parse JSON report if available
+        json_report_path = "/tmp/pytest_report.json"
+        test_results = {
+            "tests_found": True,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "exit_code": result.returncode,
+            "stdout": result.stdout,
+            "stderr": result.stderr
+        }
+        
+        if os.path.exists(json_report_path):
+            try:
+                with open(json_report_path, 'r', encoding='utf-8') as f:
+                    json_data = json.load(f)
+                    summary = json_data.get('summary', {})
+                    test_results["passed"] = summary.get('passed', 0)
+                    test_results["failed"] = summary.get('failed', 0)
+                    test_results["total"] = summary.get('total', 0)
+                    test_results["duration"] = json_data.get('duration', 0)
+                # Clean up temp file
+                os.remove(json_report_path)
+            except Exception as e:
+                log.warning(f"Could not parse pytest JSON report: {e}")
+                # Fallback: parse from stdout
+                test_results.update(_parse_pytest_stdout(result.stdout))
+        else:
+            # Fallback: parse from stdout
+            test_results.update(_parse_pytest_stdout(result.stdout))
+        
+        log.info(f"Test results: {test_results['passed']}/{test_results['total']} passed")
+        return test_results
+        
+    except subprocess.TimeoutExpired:
+        log.error(f"Pytest timed out after 5 minutes for: {test_directory}")
+        return {"tests_found": True, "passed": 0, "failed": 0, "total": 0, "error": "Timeout"}
+    except FileNotFoundError:
+        log.error("pytest not found. Make sure pytest is installed.")
+        return {"tests_found": True, "passed": 0, "failed": 0, "total": 0, "error": "pytest not installed"}
+    except Exception as e:
+        log.error(f"Error running pytest: {e}")
+        return {"tests_found": True, "passed": 0, "failed": 0, "total": 0, "error": str(e)}
+
+def _parse_pytest_stdout(stdout: str) -> dict:
+    """Fallback parser for pytest stdout when JSON report is not available."""
+    import re
+    
+    results = {"passed": 0, "failed": 0, "total": 0}
+    
+    # Look for patterns like "2 passed, 1 failed" or "5 passed"
+    pattern = r'(\d+)\s+(passed|failed|error|skipped)'
+    matches = re.findall(pattern, stdout, re.IGNORECASE)
+    
+    for count, status in matches:
+        count = int(count)
+        if status.lower() in ['passed']:
+            results["passed"] = count
+        elif status.lower() in ['failed', 'error']:
+            results["failed"] += count
+    
+    results["total"] = results["passed"] + results["failed"]
+    
+    # Alternative pattern: "= X failed, Y passed in Z seconds ="
+    alt_pattern = r'=.*?(\d+)\s+failed.*?(\d+)\s+passed'
+    alt_match = re.search(alt_pattern, stdout, re.IGNORECASE)
+    if alt_match:
+        results["failed"] = int(alt_match.group(1))
+        results["passed"] = int(alt_match.group(2))
+        results["total"] = results["passed"] + results["failed"]
+    
+    return results
+
+def get_test_results(data: dict) -> tuple[int, int, int] | None:
+    """Extracts test results from test runner JSON output.
+    
+    Returns:
+        Tuple of (passed, failed, total) or None if data is invalid
+    """
+    if not isinstance(data, dict):
+        return None
+    
+    if not data.get("tests_found", False):
+        return (0, 0, 0)  # No tests found
+    
+    passed = data.get("passed", 0)
+    failed = data.get("failed", 0)
+    total = data.get("total", 0)
+    
+    return (passed, failed, total)

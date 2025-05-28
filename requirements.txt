@@ -6,3 +6,5 @@ pyright
 bandit
 pandas
 openai
+pytest
+pytest-json-report

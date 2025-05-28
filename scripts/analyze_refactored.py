@@ -11,7 +11,7 @@ import subprocess
 import json
 from utils import (
     REFACTORED_CODE_DIR, METRICS_DIR, ensure_dir, save_json,
-    ORIGINAL_CODE_DIR, STRATEGIES
+    ORIGINAL_CODE_DIR, STRATEGIES, run_tests_with_pytest
 )
 import logging
 import argparse
@@ -176,6 +176,22 @@ def analyze_refactored_code(repo_name: str, strategy: str):
     # Bandit uses -o flag, so set use_output_flag=True
     if not run_analysis_tool(bandit_command, bandit_output_file, '.', use_output_flag=True):
         log.error(f"Bandit analysis failed for {strategy}/{repo_name}.")
+        analysis_success = False
+
+    # 6. Run Tests
+    tests_output_file = os.path.join(metrics_output_dir, "tests.json")
+    log.info("Running Tests...")
+    test_results = run_tests_with_pytest(strategy_repo_path)
+    if test_results is not None:
+        save_json(test_results, tests_output_file)
+        if test_results.get("tests_found", False):
+            passed = test_results.get("passed", 0)
+            total = test_results.get("total", 0)
+            log.info(f"Tests completed: {passed}/{total} passed")
+        else:
+            log.info("No tests found in refactored code")
+    else:
+        log.error(f"Test execution failed for {strategy}/{repo_name}.")
         analysis_success = False
 
     log.info(f"--- Finished Analysis ({strategy}) for: {repo_name} ---")

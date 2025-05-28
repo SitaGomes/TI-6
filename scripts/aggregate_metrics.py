@@ -11,7 +11,7 @@ from utils import (
     METRICS_DIR, STRATEGIES,
     safe_load_json,
     get_pylint_score, get_radon_cc_average, get_radon_mi_average,
-    get_pyright_error_count, get_bandit_vuln_count
+    get_pyright_error_count, get_bandit_vuln_count, get_test_results
 )
 import logging
 
@@ -68,11 +68,14 @@ def aggregate_repo_metrics(repo_name: str):
     orig_pylint_data = safe_load_json(os.path.join(repo_metrics_dir, "smells_lib_pylint.json"))
     orig_radon_cc_data = safe_load_json(os.path.join(repo_metrics_dir, "smells_lib_radon_cc.json"))
     orig_radon_mi_data = safe_load_json(os.path.join(repo_metrics_dir, "radon_mi.json")) # Expects this from rerun of script 02
+    orig_tests_data = safe_load_json(os.path.join(repo_metrics_dir, "original_tests.json"))
     # Pyright and Bandit are not run on original code in this workflow
 
     orig_pylint_score = get_pylint_score(orig_pylint_data) 
     orig_avg_cc = get_radon_cc_average(orig_radon_cc_data)
     orig_avg_mi = get_radon_mi_average(orig_radon_mi_data)
+    orig_test_results = get_test_results(orig_tests_data) if orig_tests_data else (0, 0, 0)
+    orig_tests_passed, orig_tests_failed, orig_tests_total = orig_test_results
     # Original errors/vulns are assumed 0 for delta calculation as they weren't measured
     orig_pyright_errors = 0 
     orig_bandit_vulns = 0 
@@ -84,7 +87,7 @@ def aggregate_repo_metrics(repo_name: str):
         orig_avg_cc = orig_avg_cc or 5.0  # Reasonable default
         orig_avg_mi = orig_avg_mi or 50.0  # Reasonable default
     
-    log.info(f"Original Metrics: PylintScore={orig_pylint_score}, AvgCC={orig_avg_cc}, AvgMI={orig_avg_mi}")
+    log.info(f"Original Metrics: PylintScore={orig_pylint_score}, AvgCC={orig_avg_cc}, AvgMI={orig_avg_mi}, Tests={orig_tests_passed}/{orig_tests_total}")
 
     # Track if we found any valid strategy directories
     found_any_strategy = False
@@ -105,6 +108,7 @@ def aggregate_repo_metrics(repo_name: str):
         radon_mi_data = safe_load_json(os.path.join(strategy_metrics_dir, "radon_mi.json"))
         pyright_data = safe_load_json(os.path.join(strategy_metrics_dir, "pyright.json"))
         bandit_data = safe_load_json(os.path.join(strategy_metrics_dir, "bandit.json"))
+        tests_data = safe_load_json(os.path.join(strategy_metrics_dir, "tests.json"))
         
         # Extract post-refactor values
         pylint_score = get_pylint_score(pylint_data)
@@ -112,6 +116,8 @@ def aggregate_repo_metrics(repo_name: str):
         avg_mi = get_radon_mi_average(radon_mi_data)
         pyright_errors = get_pyright_error_count(pyright_data)
         bandit_vulns = get_bandit_vuln_count(bandit_data)
+        test_results = get_test_results(tests_data) if tests_data else (0, 0, 0)
+        tests_passed, tests_failed, tests_total = test_results
         
         # Provide default values if needed
         if pylint_score is None or avg_cc is None or avg_mi is None:
@@ -125,7 +131,7 @@ def aggregate_repo_metrics(repo_name: str):
         pyright_errors = pyright_errors if pyright_errors is not None else 0
         bandit_vulns = bandit_vulns if bandit_vulns is not None else 0
         
-        log.debug(f"    {strategy} metrics: Pylint={pylint_score}, CC={avg_cc}, MI={avg_mi}, Pyright={pyright_errors}, Bandit={bandit_vulns}")
+        log.debug(f"    {strategy} metrics: Pylint={pylint_score}, CC={avg_cc}, MI={avg_mi}, Pyright={pyright_errors}, Bandit={bandit_vulns}, Tests={tests_passed}/{tests_total}")
 
         # Calculate deltas
         pylint_delta = calculate_delta(pylint_score, orig_pylint_score)
@@ -134,6 +140,9 @@ def aggregate_repo_metrics(repo_name: str):
         pyright_delta = calculate_delta(pyright_errors, orig_pyright_errors)
         bandit_delta = calculate_delta(bandit_vulns, orig_bandit_vulns)
         
+        # Calculate test pass ratio (format: "refactored_passed/original_passed")
+        test_pass_ratio = f"{tests_passed}/{orig_tests_passed}" if orig_tests_total > 0 else f"{tests_passed}/0"
+        
         # Provide sensible defaults for deltas if calculation failed
         pylint_delta = pylint_delta or 0.0
         cc_delta = cc_delta or 0.0
@@ -141,7 +150,7 @@ def aggregate_repo_metrics(repo_name: str):
         pyright_delta = pyright_delta or 0
         bandit_delta = bandit_delta or 0
         
-        log.debug(f"    {strategy} deltas: Pylint={pylint_delta}, CC={cc_delta}, MI={mi_delta}, Pyright={pyright_delta}, Bandit={bandit_delta}")
+        log.debug(f"    {strategy} deltas: Pylint={pylint_delta}, CC={cc_delta}, MI={mi_delta}, Pyright={pyright_delta}, Bandit={bandit_delta}, TestRatio={test_pass_ratio}")
         
         # Assemble row data - matching README columns
         row = {
@@ -155,7 +164,8 @@ def aggregate_repo_metrics(repo_name: str):
             "avg_cyclomatic_delta": cc_delta,
             "maintainability_index_delta": mi_delta,
             "pyright_error_delta": pyright_delta, # Lower is better, so delta might be negative
-            "bandit_vuln_delta": bandit_delta   # Lower is better
+            "bandit_vuln_delta": bandit_delta,   # Lower is better
+            "test_pass_ratio": test_pass_ratio   # Format: "refactored_passed/original_passed"
         }
         rows.append(row)
 
@@ -196,7 +206,8 @@ if __name__ == "__main__":
             "avg_cyclomatic_delta",
             "maintainability_index_delta",
             "pyright_error_delta",
-            "bandit_vuln_delta"
+            "bandit_vuln_delta",
+            "test_pass_ratio"
         ]
         summary_df = pd.DataFrame(columns=column_order)
         output_csv_path = os.path.join(METRICS_DIR, "summary.csv")
@@ -226,7 +237,8 @@ if __name__ == "__main__":
         "avg_cyclomatic_delta",
         "maintainability_index_delta",
         "pyright_error_delta",
-        "bandit_vuln_delta"
+        "bandit_vuln_delta",
+        "test_pass_ratio"
     ]
 
     # Create DataFrame - handle empty case
