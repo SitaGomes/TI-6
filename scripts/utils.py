@@ -8,6 +8,10 @@ from openai import OpenAI, RateLimitError, APIError
 import time
 import re
 import logging
+import threading
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+from functools import wraps
+import queue
 
 # --- Constants ---
 ORIGINAL_CODE_DIR = "original_code"
@@ -15,8 +19,60 @@ REFACTORED_CODE_DIR = "refactored_code"
 METRICS_DIR = "metrics"
 STRATEGIES = ["zero_shot", "one_shot", "cot"] # Added shared constant
 
+# --- Concurrency Configuration ---
+# These can be overridden by environment variables or command line args
+DEFAULT_MAX_CONCURRENT_REPOS = 3  # For git cloning
+DEFAULT_MAX_CONCURRENT_API_CALLS = 2  # For AI API calls
+DEFAULT_MAX_CONCURRENT_ANALYSIS = 4  # For static analysis tools
+DEFAULT_API_RATE_LIMIT_PER_MINUTE = 60  # Adjust based on your API limits
+
 # --- Logging Setup ---
 log = logging.getLogger(__name__) # Initialize logger for this module
+
+# --- Rate Limiting for API Calls ---
+class RateLimiter:
+    """Thread-safe rate limiter for API calls."""
+    
+    def __init__(self, max_calls_per_minute=DEFAULT_API_RATE_LIMIT_PER_MINUTE):
+        self.max_calls_per_minute = max_calls_per_minute
+        self.calls = queue.Queue()
+        self.lock = threading.Lock()
+    
+    def wait_if_needed(self):
+        """Wait if we're hitting rate limits."""
+        with self.lock:
+            now = time.time()
+            
+            # Remove calls older than 1 minute
+            temp_calls = []
+            while not self.calls.empty():
+                call_time = self.calls.get()
+                if now - call_time < 60:  # Within last minute
+                    temp_calls.append(call_time)
+            
+            # Put back recent calls
+            for call_time in temp_calls:
+                self.calls.put(call_time)
+            
+            # Check if we need to wait
+            if self.calls.qsize() >= self.max_calls_per_minute:
+                # Wait until the oldest call is more than 1 minute old
+                oldest_call = min(temp_calls) if temp_calls else now
+                wait_time = 60 - (now - oldest_call) + 1  # +1 for safety
+                if wait_time > 0:
+                    log.info(f"Rate limit reached. Waiting {wait_time:.1f} seconds...")
+                    time.sleep(wait_time)
+            
+            # Record this call
+            self.calls.put(now)
+
+# Global rate limiter instance
+_rate_limiter = RateLimiter()
+
+def set_rate_limit(calls_per_minute):
+    """Set the global rate limit for API calls."""
+    global _rate_limiter
+    _rate_limiter = RateLimiter(calls_per_minute)
 
 # --- Environment & Configuration ---
 
@@ -59,7 +115,7 @@ def get_github_token():
         raise ValueError("GITHUB_TOKEN not found in .env file or environment variables.")
     return token
 
-# --- API Interaction (Placeholder) ---
+# --- API Interaction with Concurrency Support ---
 
 # Configure based on DeepSeek model availability via OpenRouter
 # Using the free model identifier potentially used by OpenRouter
@@ -67,8 +123,11 @@ DEEPSEEK_MODEL = "deepseek-r1:1.5b"
 MAX_RETRIES = 5
 RETRY_DELAY_SECONDS = 5
 
-def call_deepseek_api(prompt: str, client: OpenAI):
-    """Calls the DeepSeek Chat Completion API with retry logic."""
+def call_deepseek_api(prompt: str, client: OpenAI, use_rate_limiter=True):
+    """Calls the DeepSeek Chat Completion API with retry logic and rate limiting."""
+    if use_rate_limiter:
+        _rate_limiter.wait_if_needed()
+    
     retries = 0
     while retries < MAX_RETRIES:
         response = None # Ensure response is defined in the loop scope
@@ -124,6 +183,91 @@ def call_deepseek_api(prompt: str, client: OpenAI):
 
     log.error(f"Failed to get valid response from API after {retries + 1} attempts.")
     return None # Indicate failure
+
+# --- Concurrent Processing Utilities ---
+
+def process_items_concurrently(items, process_func, max_workers=None, executor_type="thread", 
+                             progress_callback=None, error_callback=None):
+    """
+    Process a list of items concurrently using ThreadPoolExecutor or ProcessPoolExecutor.
+    
+    Args:
+        items: List of items to process
+        process_func: Function to call for each item (should take one argument)
+        max_workers: Maximum number of concurrent workers
+        executor_type: "thread" or "process"
+        progress_callback: Optional callback for progress updates (called with completed_count, total_count)
+        error_callback: Optional callback for errors (called with item, exception)
+    
+    Returns:
+        List of (item, result, error) tuples
+    """
+    if max_workers is None:
+        max_workers = min(len(items), DEFAULT_MAX_CONCURRENT_REPOS if executor_type == "thread" else DEFAULT_MAX_CONCURRENT_ANALYSIS)
+    
+    executor_class = ThreadPoolExecutor if executor_type == "thread" else ProcessPoolExecutor
+    results = []
+    
+    with executor_class(max_workers=max_workers) as executor:
+        # Submit all tasks
+        future_to_item = {executor.submit(process_func, item): item for item in items}
+        
+        completed_count = 0
+        total_count = len(items)
+        
+        # Process completed tasks
+        for future in as_completed(future_to_item):
+            item = future_to_item[future]
+            error = None
+            result = None
+            
+            try:
+                result = future.result()
+            except Exception as e:
+                error = e
+                log.error(f"Error processing {item}: {e}")
+                if error_callback:
+                    error_callback(item, e)
+            
+            results.append((item, result, error))
+            completed_count += 1
+            
+            if progress_callback:
+                progress_callback(completed_count, total_count)
+            
+            log.info(f"Progress: {completed_count}/{total_count} completed")
+    
+    return results
+
+def concurrent_api_calls(prompts_and_data, api_call_func, max_workers=None):
+    """
+    Make concurrent API calls with rate limiting.
+    
+    Args:
+        prompts_and_data: List of (prompt, additional_data) tuples
+        api_call_func: Function that takes (prompt, additional_data) and returns result
+        max_workers: Maximum concurrent API calls
+    
+    Returns:
+        List of (prompt_data, result, error) tuples
+    """
+    if max_workers is None:
+        max_workers = DEFAULT_MAX_CONCURRENT_API_CALLS
+    
+    def safe_api_call(prompt_data):
+        prompt, data = prompt_data
+        try:
+            return api_call_func(prompt, data)
+        except Exception as e:
+            log.error(f"API call failed: {e}")
+            return None
+    
+    return process_items_concurrently(
+        prompts_and_data, 
+        safe_api_call, 
+        max_workers=max_workers, 
+        executor_type="thread"
+    )
 
 # --- File System Utilities ---
 
@@ -427,110 +571,6 @@ def get_bandit_vuln_count(data: dict) -> int | None:
          return 0 # Or handle as error? Returning 0 vulns for now.
     log.warning(f"Could not extract Bandit vulnerability count from data: {data}")
     return None
-
-# --- Test Running Utilities ---
-
-def run_tests_with_pytest(code_directory: str, test_directory: str = None) -> dict | None:
-    """Runs pytest on the specified directory and returns test results.
-    
-    Args:
-        code_directory: Path to the code directory to test
-        test_directory: Optional specific test directory. If None, looks for 'tests' in code_directory
-    
-    Returns:
-        Dict with test results or None if tests couldn't be run
-    """
-    import subprocess
-    import sys
-    
-    if not os.path.exists(code_directory):
-        log.error(f"Code directory not found: {code_directory}")
-        return None
-    
-    # Determine test directory
-    if test_directory is None:
-        test_directory = os.path.join(code_directory, "tests")
-    
-    if not os.path.exists(test_directory):
-        log.warning(f"Test directory not found: {test_directory}")
-        return {"tests_found": False, "passed": 0, "failed": 0, "total": 0, "error": "No test directory found"}
-    
-    # Check if there are any test files
-    test_files = []
-    for root, dirs, files in os.walk(test_directory):
-        for file in files:
-            if file.startswith("test_") and file.endswith(".py") or file.endswith("_test.py"):
-                test_files.append(os.path.join(root, file))
-    
-    if not test_files:
-        log.warning(f"No test files found in: {test_directory}")
-        return {"tests_found": False, "passed": 0, "failed": 0, "total": 0, "error": "No test files found"}
-    
-    log.info(f"Running pytest on {len(test_files)} test files in: {test_directory}")
-    
-    # Run pytest with JSON output
-    pytest_command = [
-        sys.executable, "-m", "pytest", 
-        test_directory,
-        "--tb=short",  # Short traceback format
-        "--quiet",     # Reduce output verbosity
-        "--json-report", "--json-report-file=/tmp/pytest_report.json"  # JSON output
-    ]
-    
-    try:
-        # Run pytest
-        result = subprocess.run(
-            pytest_command, 
-            cwd=code_directory,
-            capture_output=True, 
-            text=True, 
-            encoding='utf-8',
-            timeout=300  # 5 minute timeout
-        )
-        
-        # Try to parse JSON report if available
-        json_report_path = "/tmp/pytest_report.json"
-        test_results = {
-            "tests_found": True,
-            "passed": 0,
-            "failed": 0,
-            "total": 0,
-            "exit_code": result.returncode,
-            "stdout": result.stdout,
-            "stderr": result.stderr
-        }
-        
-        if os.path.exists(json_report_path):
-            try:
-                with open(json_report_path, 'r', encoding='utf-8') as f:
-                    json_data = json.load(f)
-                    summary = json_data.get('summary', {})
-                    test_results["passed"] = summary.get('passed', 0)
-                    test_results["failed"] = summary.get('failed', 0)
-                    test_results["total"] = summary.get('total', 0)
-                    test_results["duration"] = json_data.get('duration', 0)
-                # Clean up temp file
-                os.remove(json_report_path)
-            except Exception as e:
-                log.warning(f"Could not parse pytest JSON report: {e}")
-                # Fallback: parse from stdout
-                test_results.update(_parse_pytest_stdout(result.stdout))
-        else:
-            # Fallback: parse from stdout
-            test_results.update(_parse_pytest_stdout(result.stdout))
-        
-        log.info(f"Test results: {test_results['passed']}/{test_results['total']} passed")
-        return test_results
-        
-    except subprocess.TimeoutExpired:
-        log.error(f"Pytest timed out after 5 minutes for: {test_directory}")
-        return {"tests_found": True, "passed": 0, "failed": 0, "total": 0, "error": "Timeout"}
-    except FileNotFoundError:
-        log.error("pytest not found. Make sure pytest is installed.")
-        return {"tests_found": True, "passed": 0, "failed": 0, "total": 0, "error": "pytest not installed"}
-    except Exception as e:
-        log.error(f"Error running pytest: {e}")
-        return {"tests_found": True, "passed": 0, "failed": 0, "total": 0, "error": str(e)}
 
 # --- Test Running Utilities ---
 

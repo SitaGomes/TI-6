@@ -2,7 +2,7 @@
 Step 6: Post-Refactor Analysis.
 
 Runs static analysis tools (Pylint, Radon CC/MI, Pyright, Bandit) on each
-refactored code directory corresponding to a specific strategy.
+refactored code directory corresponding to a specific strategy concurrently.
 """
 
 import os
@@ -11,10 +11,12 @@ import subprocess
 import json
 from utils import (
     REFACTORED_CODE_DIR, METRICS_DIR, ensure_dir, save_json,
-    ORIGINAL_CODE_DIR, STRATEGIES, run_tests_with_pytest
+    ORIGINAL_CODE_DIR, STRATEGIES, run_tests_with_pytest,
+    process_items_concurrently, DEFAULT_MAX_CONCURRENT_ANALYSIS
 )
 import logging
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 log = logging.getLogger(__name__)
 
@@ -91,8 +93,31 @@ def run_analysis_tool(command: list, output_file: str, working_dir: str, use_out
              log.error(f"Stderr: {stderr_content}")
         return False
 
-def analyze_refactored_code(repo_name: str, strategy: str):
-    """Runs all analysis tools on a specific refactored version of the code."""
+def run_single_analysis_tool(tool_info):
+    """Run a single analysis tool. Used for concurrent processing."""
+    tool_name, command, output_file, working_dir, use_output_flag = tool_info
+    
+    try:
+        success = run_analysis_tool(command, output_file, working_dir, use_output_flag)
+        return {
+            "tool": tool_name,
+            "success": success,
+            "output_file": output_file
+        }
+    except Exception as e:
+        log.error(f"Error running {tool_name}: {e}")
+        return {
+            "tool": tool_name,
+            "success": False,
+            "output_file": output_file,
+            "error": str(e)
+        }
+
+def analyze_refactored_code(repo_name: str, strategy: str, max_concurrent_tools: int = None):
+    """Runs all analysis tools on a specific refactored version of the code concurrently."""
+    if max_concurrent_tools is None:
+        max_concurrent_tools = DEFAULT_MAX_CONCURRENT_ANALYSIS
+        
     strategy_repo_path = os.path.join(REFACTORED_CODE_DIR, strategy, repo_name)
     if not os.path.isdir(strategy_repo_path):
         log.warning(f"Refactored directory not found: {strategy_repo_path}. Skipping analysis for this strategy.")
@@ -106,9 +131,10 @@ def analyze_refactored_code(repo_name: str, strategy: str):
     log.info(f"Source: {strategy_repo_path}")
     log.info(f"Output Metrics Dir: {metrics_output_dir}")
 
-    analysis_success = True
+    # Prepare all analysis tools to run concurrently
+    analysis_tools = []
 
-    # 1. Run Pylint
+    # 1. Pylint
     pylint_output_file = os.path.join(metrics_output_dir, "pylint.json")
     pylint_command = [
         sys.executable, "-m", "pylint", 
@@ -118,36 +144,27 @@ def analyze_refactored_code(repo_name: str, strategy: str):
         "--disable=C0114,C0115,C0116,R0903", # Same disables as before
         "--exit-zero"
     ]
-    log.info("Running Pylint...")
-    if not run_analysis_tool(pylint_command, pylint_output_file, '.', use_output_flag=False):
-        log.error(f"Pylint analysis failed for {strategy}/{repo_name}.")
-        analysis_success = False
+    analysis_tools.append(("Pylint", pylint_command, pylint_output_file, '.', False))
 
-    # 2. Run Radon CC
+    # 2. Radon CC
     radon_cc_output_file = os.path.join(metrics_output_dir, "radon_cc.json")
     radon_cc_command = [
         sys.executable, "-m", "radon", "cc", 
         strategy_repo_path, 
         "-s", "-j"
     ]
-    log.info("Running Radon CC...")
-    if not run_analysis_tool(radon_cc_command, radon_cc_output_file, '.', use_output_flag=False):
-        log.error(f"Radon CC analysis failed for {strategy}/{repo_name}.")
-        analysis_success = False
+    analysis_tools.append(("Radon CC", radon_cc_command, radon_cc_output_file, '.', False))
 
-    # 3. Run Radon MI
+    # 3. Radon MI
     radon_mi_output_file = os.path.join(metrics_output_dir, "radon_mi.json")
     radon_mi_command = [
         sys.executable, "-m", "radon", "mi", 
         strategy_repo_path, 
         "-s", "-j" # Use -j for JSON output
     ]
-    log.info("Running Radon MI...")
-    if not run_analysis_tool(radon_mi_command, radon_mi_output_file, '.', use_output_flag=False):
-        log.error(f"Radon MI analysis failed for {strategy}/{repo_name}.")
-        analysis_success = False
+    analysis_tools.append(("Radon MI", radon_mi_command, radon_mi_output_file, '.', False))
 
-    # 4. Run Pyright
+    # 4. Pyright
     pyright_output_file = os.path.join(metrics_output_dir, "pyright.json")
     # Note: Pyright needs to be installed (e.g., npm install -g pyright or pip install pyright)
     # Running via python -m pyright might not work depending on installation method
@@ -157,12 +174,9 @@ def analyze_refactored_code(repo_name: str, strategy: str):
         strategy_repo_path, 
         "--outputjson" # Request JSON output
     ]
-    log.info("Running Pyright...")
-    if not run_analysis_tool(pyright_command, pyright_output_file, '.', use_output_flag=False):
-        log.error(f"Pyright analysis failed for {strategy}/{repo_name}. Ensure pyright is installed and in PATH.")
-        analysis_success = False
+    analysis_tools.append(("Pyright", pyright_command, pyright_output_file, '.', False))
 
-    # 5. Run Bandit
+    # 5. Bandit
     bandit_output_file = os.path.join(metrics_output_dir, "bandit.json")
     bandit_command = [
         sys.executable, "-m", "bandit", 
@@ -172,13 +186,42 @@ def analyze_refactored_code(repo_name: str, strategy: str):
         "-o", bandit_output_file # Output file flag
         # Add severity filters if needed, e.g., -ll for medium+, -iii for high
     ]
-    log.info("Running Bandit...")
-    # Bandit uses -o flag, so set use_output_flag=True
-    if not run_analysis_tool(bandit_command, bandit_output_file, '.', use_output_flag=True):
-        log.error(f"Bandit analysis failed for {strategy}/{repo_name}.")
-        analysis_success = False
+    analysis_tools.append(("Bandit", bandit_command, bandit_output_file, '.', True))
 
-    # 6. Run Tests
+    log.info(f"Running {len(analysis_tools)} analysis tools concurrently with {max_concurrent_tools} workers...")
+
+    # Run analysis tools concurrently
+    results = process_items_concurrently(
+        analysis_tools,
+        run_single_analysis_tool,
+        max_workers=max_concurrent_tools,
+        executor_type="thread",  # Most tools are I/O bound
+        progress_callback=lambda completed, total: log.info(f"Analysis progress: {completed}/{total} tools completed"),
+        error_callback=lambda tool_info, error: log.error(f"Failed to run {tool_info[0]}: {error}")
+    )
+
+    # Process results
+    analysis_success = True
+    successful_tools = []
+    failed_tools = []
+
+    for tool_info, result, error in results:
+        tool_name = tool_info[0]
+        
+        if error:
+            failed_tools.append(tool_name)
+            analysis_success = False
+            continue
+            
+        if result and result.get("success", False):
+            successful_tools.append(tool_name)
+            log.info(f"{tool_name} completed successfully")
+        else:
+            failed_tools.append(tool_name)
+            analysis_success = False
+            log.error(f"{tool_name} failed")
+
+    # 6. Run Tests (separately, as it's different from static analysis)
     tests_output_file = os.path.join(metrics_output_dir, "tests.json")
     log.info("Running Tests...")
     test_results = run_tests_with_pytest(strategy_repo_path)
@@ -188,16 +231,25 @@ def analyze_refactored_code(repo_name: str, strategy: str):
             passed = test_results.get("passed", 0)
             total = test_results.get("total", 0)
             log.info(f"Tests completed: {passed}/{total} passed")
+            successful_tools.append("Tests")
         else:
             log.info("No tests found in refactored code")
+            successful_tools.append("Tests (none found)")
     else:
         log.error(f"Test execution failed for {strategy}/{repo_name}.")
+        failed_tools.append("Tests")
         analysis_success = False
+
+    # Summary
+    log.info(f"--- Analysis Summary ({strategy}) for: {repo_name} ---")
+    log.info(f"Successful tools: {', '.join(successful_tools)}")
+    if failed_tools:
+        log.warning(f"Failed tools: {', '.join(failed_tools)}")
 
     log.info(f"--- Finished Analysis ({strategy}) for: {repo_name} ---")
     return analysis_success
 
-def main_analysis_logic(repo_name: str):
+def main_analysis_logic(repo_name: str, max_concurrent_tools: int = None):
     """Runs the post-refactor analysis for a specific repository."""
     log.info(f"--- Starting Post-Refactor Analysis for Repository: {repo_name} ---")
 
@@ -214,7 +266,7 @@ def main_analysis_logic(repo_name: str):
             continue
             
         analyzed_strategies.append(strategy)
-        if not analyze_refactored_code(repo_name, strategy):
+        if not analyze_refactored_code(repo_name, strategy, max_concurrent_tools):
             overall_success = False
             failed_strategies.append(strategy)
 
@@ -245,6 +297,8 @@ def main_analysis_logic(repo_name: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run post-refactor analysis for a specific repository.")
     parser.add_argument("repo_name", help="Name of the repository directory (should exist in refactored_code/ for each strategy)")
+    parser.add_argument("--max-concurrent", type=int, default=None, 
+                        help="Maximum number of concurrent analysis tools")
     args = parser.parse_args()
 
     # Configure logging
@@ -260,7 +314,7 @@ if __name__ == "__main__":
          log.warning(f"Did not find refactored code for repo '{args.repo_name}' in any strategy directory. Did step 5 run?")
          # Continue anyway, the main logic will skip strategies if dirs are missing.
          
-    if not main_analysis_logic(args.repo_name):
+    if not main_analysis_logic(args.repo_name, args.max_concurrent):
         log.error(f"Post-refactor analysis failed for repository: {args.repo_name}")
         sys.exit(1)
     else:

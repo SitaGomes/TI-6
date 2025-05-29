@@ -3,6 +3,7 @@ Main workflow orchestration script.
 
 Fetches N repositories, processes each one through the analysis and refactoring pipeline,
 aggregates the final metrics, and optionally cleans up working directories.
+Now supports concurrent processing for improved performance.
 """
 
 import os
@@ -11,6 +12,10 @@ import subprocess
 import argparse
 import shutil
 import logging
+from utils import (
+    DEFAULT_MAX_CONCURRENT_REPOS, DEFAULT_MAX_CONCURRENT_API_CALLS, 
+    DEFAULT_MAX_CONCURRENT_ANALYSIS, set_rate_limit
+)
 
 # --- Configuration ---
 PYTHON_EXECUTABLE = sys.executable # Use the same python that runs this script
@@ -91,7 +96,7 @@ def perform_cleanup():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run the full AI refactoring analysis workflow.")
+    parser = argparse.ArgumentParser(description="Run the full AI refactoring analysis workflow with concurrent processing.")
     parser.add_argument("-n", "--num-repos", type=int, default=1, 
                         help="Number of top repositories to fetch and process.")
     parser.add_argument("--skip-fetch", action="store_true", 
@@ -102,7 +107,22 @@ if __name__ == "__main__":
                         help="Start the workflow from a specific script number (e.g., '02', '05'). Requires --skip-fetch and assumes previous steps are done.")
 # Removed smell strategy arguments since we only use zero-shot now
 
+    # Concurrency options
+    parser.add_argument("--max-concurrent-repos", type=int, default=DEFAULT_MAX_CONCURRENT_REPOS,
+                        help=f"Maximum concurrent repository clones (default: {DEFAULT_MAX_CONCURRENT_REPOS})")
+    parser.add_argument("--max-concurrent-api", type=int, default=DEFAULT_MAX_CONCURRENT_API_CALLS,
+                        help=f"Maximum concurrent AI API calls (default: {DEFAULT_MAX_CONCURRENT_API_CALLS})")
+    parser.add_argument("--max-concurrent-analysis", type=int, default=DEFAULT_MAX_CONCURRENT_ANALYSIS,
+                        help=f"Maximum concurrent static analysis tools (default: {DEFAULT_MAX_CONCURRENT_ANALYSIS})")
+    parser.add_argument("--api-rate-limit", type=int, default=60,
+                        help="API rate limit per minute (default: 60)")
+
     args = parser.parse_args()
+
+    # Configure rate limiting
+    set_rate_limit(args.api_rate_limit)
+    log.info(f"Configured API rate limit: {args.api_rate_limit} calls per minute")
+    log.info(f"Concurrency settings - Repos: {args.max_concurrent_repos}, API: {args.max_concurrent_api}, Analysis: {args.max_concurrent_analysis}")
 
     # --- Step 1: Fetch Repos (or identify existing) ---
     fetched_repo_names = []
@@ -176,8 +196,19 @@ if __name__ == "__main__":
         
         # Run scripts from the calculated start index using the fixed list
         for script_basename in REPO_PROCESSING_SCRIPTS[start_index:]:
-            # Run all scripts normally with just repo_name argument
-            if not run_script(script_basename, args=[repo_name], repo_name_for_log=repo_name):
+            # Prepare script arguments with concurrency options
+            script_args = [repo_name]
+            
+            # Add concurrency arguments for scripts that support them
+            if script_basename == "generate_tests.py":
+                script_args.extend(["--max-concurrent", str(args.max_concurrent_api)])
+            elif script_basename == "analyze_refactored.py":
+                script_args.extend(["--max-concurrent", str(args.max_concurrent_analysis)])
+            elif script_basename == "detect_smells_ai.py":
+                script_args.extend(["--max-concurrent", str(args.max_concurrent_api)])
+            # Note: refactor_code.py will need similar updates if it uses AI
+            
+            if not run_script(script_basename, args=script_args, repo_name_for_log=repo_name):
                 log.warning(f"Script {script_basename} failed for repo {repo_name}, but continuing with next steps.")
                 repo_warnings.append(f"Script {script_basename} failed")
                 
