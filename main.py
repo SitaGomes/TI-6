@@ -12,7 +12,7 @@ import subprocess
 import argparse
 import shutil
 import logging
-from utils import (
+from scripts.utils import (
     DEFAULT_MAX_CONCURRENT_REPOS, DEFAULT_MAX_CONCURRENT_API_CALLS, 
     DEFAULT_MAX_CONCURRENT_ANALYSIS, set_rate_limit
 )

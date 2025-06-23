@@ -12,7 +12,7 @@ from utils import (
 import sys
 import logging
 
-NUM_REPOS = 1 # As requested, start with 1 repo for testing
+NUM_REPOS = 30 # Increased from 1 to fetch 30 repos for analysis
 
 log = logging.getLogger(__name__)
 
